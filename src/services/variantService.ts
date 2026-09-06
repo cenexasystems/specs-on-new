@@ -38,7 +38,7 @@ export type VariantInput = {
 }
 
 const VARIANT_COLS =
-  'id, product_id, variant_name, size_label, weight_value, weight_unit, sku, barcode, purchase_price, mrp, price, stock, is_default, is_active, sort_order, image_url, group_name'
+  'id, product_id, variant_name, size_label, weight_value, weight_unit, sku, barcode, purchase_price, mrp, price, is_default, is_active, group_name'
 
 function mapVariant(r: Record<string, unknown>): ProductVariant {
   return {
@@ -71,7 +71,7 @@ export async function fetchAllVariants(): Promise<{ data: ProductVariant[]; erro
     .from('product_variants')
     .select(VARIANT_COLS)
     .eq('is_active', true)
-    .order('sort_order', { ascending: true })
+    .order('variant_name', { ascending: true })
 
   if (error) return { data: [], error: error.message }
   return {
@@ -88,7 +88,7 @@ export async function fetchVariantsByProduct(productId: string): Promise<Product
     .select(VARIANT_COLS)
     .eq('product_id', productId)
     .eq('is_active', true)
-    .order('sort_order', { ascending: true })
+    .order('variant_name', { ascending: true })
 
   return (data || []).map(r => mapVariant(r as Record<string, unknown>))
 }

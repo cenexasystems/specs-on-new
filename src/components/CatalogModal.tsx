@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react'
-import { X, Search, ShoppingBag, Edit2, Trash2 } from 'lucide-react'
-import { useProductStore, type Product } from '../store/store'
-import { supabase } from '../lib/supabase'
+import React, { useState, useMemo, useEffect } from "react"
+import { X, Search, ShoppingBag, Edit2, Trash2, CheckSquare, Square } from "lucide-react"
+import { useProductStore, type Product } from "../store/store"
+import { supabase } from "../lib/supabase"
 
 interface CatalogModalProps {
   isOpen: boolean
@@ -12,14 +12,18 @@ interface CatalogModalProps {
 type CategoryOption = { id: string | number; name_en: string; is_active?: boolean; sort_order?: number }
 
 export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalProps) {
-  const { fetchProducts, products, loading, error } = useProductStore()
-  const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
+  const { fetchProducts, products, loading, error, lensAddons } = useProductStore()
+  const [search, setSearch] = useState("")
+  const [activeCategory, setActiveCategory] = useState("All")
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', category: '', price: '' })
+  const [editForm, setEditForm] = useState({ name: "", category: "", price: "" })
   const [editLoading, setEditLoading] = useState(false)
-  const [editError, setEditError] = useState('')
+  const [editError, setEditError] = useState("")
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
+
+  // Add-on picker state
+  const [addonProduct, setAddonProduct] = useState<Product | null>(null)
+  const [selectedAddons, setSelectedAddons] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (isOpen) void fetchProducts(true)
@@ -30,9 +34,9 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
     let cancelled = false
     const loadCategories = async () => {
       const { data } = await supabase
-        .from('categories')
-        .select('id, name_en, is_active, sort_order')
-        .order('sort_order')
+        .from("categories")
+        .select("id, name_en, is_active, sort_order")
+        .order("sort_order")
       if (!cancelled) setCategoryOptions((data || []) as CategoryOption[])
     }
     void loadCategories()
@@ -40,23 +44,22 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
   }, [isOpen])
 
   const categories = useMemo(() => {
-    // Only show active categories, in dashboard sort_order
     const activeCats = categoryOptions
       .filter(c => c.is_active !== false)
       .map(c => c.name_en.trim())
       .filter(Boolean)
-    return ['All', ...activeCats]
+    return ["All", ...activeCats]
   }, [categoryOptions])
 
   const allCategoryOptions = useMemo(() => {
     const merged = new Map<string, CategoryOption>()
     categoryOptions
-      .filter(category => category.name_en.trim().toLowerCase() !== 'manual')
+      .filter(category => category.name_en.trim().toLowerCase() !== "manual")
       .forEach(category => merged.set(category.name_en.trim().toLowerCase(), category))
     products.filter(product => product.isActive && product.category.trim()).forEach(product => {
       const key = product.category.trim().toLowerCase()
-      if (key === 'manual') return
-      if (!merged.has(key)) merged.set(key, { id: product.categoryId || `product-category-${key}`, name_en: product.category.trim() })
+      if (key === "manual") return
+      if (!merged.has(key)) merged.set(key, { id: product.categoryId || "product-category-" + key, name_en: product.category.trim() })
     })
     return Array.from(merged.values()).sort((a, b) => a.name_en.localeCompare(b.name_en))
   }, [categoryOptions, products])
@@ -64,10 +67,10 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     let src = products.filter(p => p.isActive)
-    if (activeCategory !== 'All') src = src.filter(p => p.category === activeCategory)
+    if (activeCategory !== "All") src = src.filter(p => p.category === activeCategory)
     if (q) src = src.filter(p =>
       p.name.toLowerCase().includes(q) ||
-      (p.nameTa || '').toLowerCase().includes(q) ||
+      (p.nameTa || "").toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q)
     )
     return src
@@ -76,29 +79,29 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
   const startEdit = (p: Product) => {
     setEditingProduct(p)
     setEditForm({ name: p.name, category: p.category, price: String(p.price) })
-    setEditError('')
+    setEditError("")
   }
 
   const cancelEdit = () => {
     setEditingProduct(null)
-    setEditError('')
+    setEditError("")
   }
 
   const saveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingProduct) return
-    if (!editForm.name.trim()) { setEditError('Name is required'); return }
+    if (!editForm.name.trim()) { setEditError("Name is required"); return }
     setEditLoading(true)
-    setEditError('')
+    setEditError("")
     const selectedCategory = allCategoryOptions.find(c => c.name_en.trim().toLowerCase() === editForm.category.trim().toLowerCase())
-    if (!selectedCategory) { setEditError('Select a valid category'); setEditLoading(false); return }
+    if (!selectedCategory) { setEditError("Select a valid category"); setEditLoading(false); return }
     const categoryName = selectedCategory.name_en.trim()
-    const { error } = await supabase.from('products').update({
+    const { error } = await supabase.from("products").update({
       name: editForm.name.trim(),
       category: categoryName,
       category_id: selectedCategory.id,
       price: Number(editForm.price),
-        stock_quantity: Number('0') }).eq('id', editingProduct.id)
+    }).eq("id", editingProduct.id)
     if (error) { setEditError(error.message); setEditLoading(false); return }
     await fetchProducts(true)
     setEditLoading(false)
@@ -106,9 +109,41 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
   }
 
   const handleDelete = async (p: Product) => {
-    if (!window.confirm(`Delete "${p.name}"? This will deactivate it.`)) return
-    await supabase.from('products').update({ is_active: false }).eq('id', p.id)
+    if (!window.confirm("Delete \"" + p.name + "\"? This will deactivate it.")) return
+    await supabase.from("products").update({ is_active: false }).eq("id", p.id)
     await fetchProducts(true)
+  }
+
+  const handleProductClick = (product: Product) => {
+    const isNonBrandedLens = product.category?.toLowerCase().includes("non-branded")
+    if (isNonBrandedLens && lensAddons.length > 0) {
+      setAddonProduct(product)
+      setSelectedAddons(new Set())
+    } else {
+      onAdd(product)
+      onClose()
+    }
+  }
+
+  const confirmWithAddons = () => {
+    if (!addonProduct) return
+    const addons = Array.from(selectedAddons).map(id => lensAddons.find(a => a.id === id)).filter(Boolean) as any[]
+    const addonsPrice = addons.reduce((sum, a) => sum + Number(a.price), 0)
+    onAdd({
+      ...addonProduct,
+      price: addonProduct.price + addonsPrice,
+      selectedAddons: addons,
+    } as any)
+    setAddonProduct(null)
+    setSelectedAddons(new Set())
+    onClose()
+  }
+
+  const toggleAddon = (id: number) => {
+    const next = new Set(selectedAddons)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelectedAddons(next)
   }
 
   if (!isOpen) return null
@@ -117,131 +152,172 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-5xl flex min-h-0 flex-col shadow-2xl overflow-hidden border border-[#FDDBB4]/40 max-h-[calc(100dvh-1rem)] sm:max-h-[85vh]">
 
-        {editingProduct ? (
-          <>
-            <div className="flex items-center justify-between p-6 border-b border-[#FDDBB4]/40 bg-[#F9FAFB]">
-              <h2 className="text-xl font-black text-[#111111]">Edit Product</h2>
-              <button onClick={cancelEdit} className="p-2 rounded-xl hover:bg-black/5 text-[#374151]">
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={saveEdit} className="p-6 flex flex-col gap-4">
-              {editError && <div className="text-red-500 text-sm font-bold bg-red-50 p-3 rounded-xl">{editError}</div>}
-              <div>
-                <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Product Name</label>
-                <input type="text" value={editForm.name}
-                  onChange={e => setEditForm({...editForm, name: e.target.value})}
-                  className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Category</label>
-                  <select value={editForm.category}
-                    onChange={e => setEditForm({...editForm, category: e.target.value})}
-                    className="w-full min-w-0 h-12 px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold touch-manipulation">
-                    <option value="">Select category</option>
-                    {allCategoryOptions.map(category => <option key={category.id} value={category.name_en}>{category.name_en}</option>)}
-                    {!allCategoryOptions.some(category => category.name_en === editForm.category) && editForm.category && (
-                      <option value={editForm.category}>{editForm.category}</option>
-                    )}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Price (₹ )</label>
-                  <input type="number" value={editForm.price}
-                    onChange={e => setEditForm({...editForm, price: e.target.value})}
-                    className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold text-right" placeholder="0" />
-                </div>
-              </div>
-              <button type="submit" disabled={editLoading}
-                className="mt-4 w-full py-3.5 bg-[#3B261B] hover:bg-[#1A1410] text-white rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors disabled:opacity-50">
-                {editLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
+        {addonProduct && (
+          <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-5 border-b border-[#FDDBB4]/40 bg-[#F9FAFB]">
-              <h2 className="text-[18px] font-black text-[#111111] flex items-center gap-2">
-                <Search size={18} className="text-[#3B261B]" />
-                Search Catalog
-              </h2>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-black/5 text-[#374151]">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280]">Add-ons for</p>
+                <h2 className="text-lg font-black text-[#111111]">{addonProduct.name}</h2>
+                <p className="text-[11px] font-bold text-[#6B7280]">Base price: Rs.{addonProduct.price}</p>
+              </div>
+              <button onClick={() => setAddonProduct(null)} className="p-2 rounded-xl hover:bg-black/5 text-[#374151]">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-3 sm:p-4 border-b border-[#FDDBB4]/40 bg-white space-y-3">
-              <div className="relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#374151]" />
-                <input type="text" value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search by product name, Tamil name, or category..."
-                  className="w-full pl-10 pr-4 py-3 bg-[#FAFAFA] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold text-[#111111]" />
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                {categories.map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-[#3B261B] text-white' : 'bg-[#FAFAFA] text-[#374151] hover:bg-[#F9FAFB] border border-[#FDDBB4]/60'}`}>
-                    {cat}
+            <div className="flex-1 overflow-y-auto p-5 bg-[#FAFAFA]">
+              <p className="text-[11px] font-bold text-[#6B7280] mb-3 uppercase tracking-wider">Select Add-ons (optional)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {lensAddons.map(a => (
+                  <button key={a.id} type="button" onClick={() => toggleAddon(a.id)}
+                    className={"flex items-center gap-3 p-4 rounded-xl border text-left transition-colors " + (selectedAddons.has(a.id) ? "bg-[#3B261B]/5 border-[#3B261B] text-[#3B261B]" : "bg-white border-[#FDDBB4]/60 text-gray-600 hover:border-[#3B261B]/40")}>
+                    {selectedAddons.has(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                    <span className="text-sm font-bold flex-1">{a.name}</span>
+                    <span className="text-sm font-black">+Rs.{a.price}</span>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 bg-[#FAFAFA]">
-              {loading ? (
-                <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-[#374151]/70">
-                  <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#FDDBB4] border-t-[#3B261B]" />
-                  <p className="text-[13px] font-bold">Loading catalog...</p>
-                </div>
-              ) : error ? (
-                <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-4 text-center text-red-500">
-                  <p className="text-[13px] font-bold">Unable to load catalog items.</p>
-                  <button type="button" onClick={() => void fetchProducts(true)} className="rounded-lg bg-[#3B261B] px-3 py-2 text-[11px] font-black text-white">Try again</button>
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-[#374151]/60 py-12">
-                  <ShoppingBag size={48} className="mb-4 opacity-20" />
-                  <p className="text-[14px] font-bold">No products found</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {filtered.map(product => (
-                    <div key={product.id}
-                      className="bg-white border border-[#FDDBB4]/60 rounded-2xl p-3 flex flex-col gap-2 hover:border-[#3B261B]/40 hover:shadow-md transition-all group relative">
-                      <div className="flex justify-end gap-1 mb-1 md:absolute md:top-2 md:right-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
-                        <button onClick={(e) => { e.stopPropagation(); startEdit(product) }} title="Edit product"
-                          className="p-1.5 rounded-lg bg-white border border-[#FDDBB4]/60 text-[#374151] hover:text-[#3B261B] hover:border-[#3B261B]/40 shadow-sm transition-colors">
-                          <Edit2 size={14} />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); void handleDelete(product) }} title="Delete product"
-                          className="p-1.5 rounded-lg bg-white border border-[#FDDBB4]/60 text-red-400 hover:text-red-600 hover:border-red-300 shadow-sm transition-colors">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                      <div onClick={() => onAdd(product)} className="cursor-pointer flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h4 className="text-[13px] font-black text-[#111111] leading-tight group-hover:text-[#3B261B] transition-colors truncate">{product.name}</h4>
-                            {product.lensType && <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#3B261B]/10 text-[#3B261B] border border-[#3B261B]/20">{product.lensType}</span>}
-                            {product.nameTa && <p className="text-[10px] font-bold text-[#374151] mt-0.5 truncate">{product.nameTa}</p>}
-                          </div>
-                          
-                        </div>
-                      </div>
-                      <div onClick={() => onAdd(product)} className="cursor-pointer">
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#FDDBB4]/30 gap-2">
-                          <span className="text-[14px] font-black text-[#111111] shrink-0 whitespace-nowrap">₹ {product.price}</span>
-                          <div className="flex items-center justify-end gap-1.5 overflow-hidden">
-                            
-                            <span className="text-[9px] font-black text-[#374151] uppercase tracking-wider bg-[#F9FAFB] px-2 py-1 rounded border border-[#FDDBB4]/40 truncate min-w-0">{product.category}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            <div className="p-5 border-t border-[#FDDBB4]/40 bg-white">
+              {selectedAddons.size > 0 && (
+                <p className="text-[12px] font-bold text-[#6B7280] mb-3">
+                  Total: Rs.{addonProduct.price + Array.from(selectedAddons).reduce((s, id) => s + Number(lensAddons.find(a => a.id === id)?.price || 0), 0)}
+                </p>
               )}
+              <button onClick={confirmWithAddons}
+                className="w-full py-3.5 bg-[#3B261B] hover:bg-[#1A1410] text-white rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors">
+                Add to Bill
+              </button>
             </div>
+          </div>
+        )}
+
+        {!addonProduct && (
+          <>
+            {editingProduct ? (
+              <>
+                <div className="flex items-center justify-between p-6 border-b border-[#FDDBB4]/40 bg-[#F9FAFB]">
+                  <h2 className="text-xl font-black text-[#111111]">Edit Product</h2>
+                  <button onClick={cancelEdit} className="p-2 rounded-xl hover:bg-black/5 text-[#374151]">
+                    <X size={20} />
+                  </button>
+                </div>
+                <form onSubmit={saveEdit} className="p-6 flex flex-col gap-4">
+                  {editError && <div className="text-red-500 text-sm font-bold bg-red-50 p-3 rounded-xl">{editError}</div>}
+                  <div>
+                    <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Product Name</label>
+                    <input type="text" value={editForm.name}
+                      onChange={e => setEditForm({...editForm, name: e.target.value})}
+                      className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Category</label>
+                      <select value={editForm.category}
+                        onChange={e => setEditForm({...editForm, category: e.target.value})}
+                        className="w-full min-w-0 h-12 px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold touch-manipulation">
+                        <option value="">Select category</option>
+                        {allCategoryOptions.map(category => <option key={category.id} value={category.name_en}>{category.name_en}</option>)}
+                        {!allCategoryOptions.some(category => category.name_en === editForm.category) && editForm.category && (
+                          <option value={editForm.category}>{editForm.category}</option>
+                        )}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Price</label>
+                      <input type="number" value={editForm.price}
+                        onChange={e => setEditForm({...editForm, price: e.target.value})}
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold text-right" placeholder="0" />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={editLoading}
+                    className="mt-4 w-full py-3.5 bg-[#3B261B] hover:bg-[#1A1410] text-white rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors disabled:opacity-50">
+                    {editLoading ? "Saving..." : "Save Changes"}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-5 border-b border-[#FDDBB4]/40 bg-[#F9FAFB]">
+                  <h2 className="text-[18px] font-black text-[#111111] flex items-center gap-2">
+                    <Search size={18} className="text-[#3B261B]" />
+                    Search Catalog
+                  </h2>
+                  <button onClick={onClose} className="p-2 rounded-xl hover:bg-black/5 text-[#374151]">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-3 sm:p-4 border-b border-[#FDDBB4]/40 bg-white space-y-3">
+                  <div className="relative">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#374151]" />
+                    <input type="text" value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      placeholder="Search by product name, Tamil name, or category..."
+                      className="w-full pl-10 pr-4 py-3 bg-[#FAFAFA] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold text-[#111111]" />
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {categories.map(cat => (
+                      <button key={cat} onClick={() => setActiveCategory(cat)}
+                        className={"px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-colors " + (activeCategory === cat ? "bg-[#3B261B] text-white" : "bg-[#FAFAFA] text-[#374151] hover:bg-[#F9FAFB] border border-[#FDDBB4]/60")}>
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 bg-[#FAFAFA]">
+                  {loading ? (
+                    <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-[#374151]/70">
+                      <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#FDDBB4] border-t-[#3B261B]" />
+                      <p className="text-[13px] font-bold">Loading catalog...</p>
+                    </div>
+                  ) : error ? (
+                    <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-4 text-center text-red-500">
+                      <p className="text-[13px] font-bold">Unable to load catalog items.</p>
+                      <button type="button" onClick={() => void fetchProducts(true)} className="rounded-lg bg-[#3B261B] px-3 py-2 text-[11px] font-black text-white">Try again</button>
+                    </div>
+                  ) : filtered.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-[#374151]/60 py-12">
+                      <ShoppingBag size={48} className="mb-4 opacity-20" />
+                      <p className="text-[14px] font-bold">No products found</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {filtered.map(product => (
+                        <div key={product.id}
+                          className="bg-white border border-[#FDDBB4]/60 rounded-2xl p-3 flex flex-col gap-2 hover:border-[#3B261B]/40 hover:shadow-md transition-all group relative">
+                          <div className="flex justify-end gap-1 mb-1 md:absolute md:top-2 md:right-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
+                            <button onClick={(e) => { e.stopPropagation(); startEdit(product) }} title="Edit product"
+                              className="p-1.5 rounded-lg bg-white border border-[#FDDBB4]/60 text-[#374151] hover:text-[#3B261B] hover:border-[#3B261B]/40 shadow-sm transition-colors">
+                              <Edit2 size={14} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); void handleDelete(product) }} title="Delete product"
+                              className="p-1.5 rounded-lg bg-white border border-[#FDDBB4]/60 text-red-400 hover:text-red-600 hover:border-red-300 shadow-sm transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                          <div onClick={() => handleProductClick(product)} className="cursor-pointer flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="text-[13px] font-black text-[#111111] leading-tight group-hover:text-[#3B261B] transition-colors truncate">{product.name}</h4>
+                                {product.lensType && <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#3B261B]/10 text-[#3B261B] border border-[#3B261B]/20">{product.lensType}</span>}
+                                {product.nameTa && <p className="text-[10px] font-bold text-[#374151] mt-0.5 truncate">{product.nameTa}</p>}
+                              </div>
+                            </div>
+                          </div>
+                          <div onClick={() => handleProductClick(product)} className="cursor-pointer">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#FDDBB4]/30 gap-2">
+                              <span className="text-[14px] font-black text-[#111111] shrink-0 whitespace-nowrap">Rs. {product.price}</span>
+                              <div className="flex items-center justify-end gap-1.5 overflow-hidden">
+                                <span className="text-[9px] font-black text-[#374151] uppercase tracking-wider bg-[#F9FAFB] px-2 py-1 rounded border border-[#FDDBB4]/40 truncate min-w-0">{product.category}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
 

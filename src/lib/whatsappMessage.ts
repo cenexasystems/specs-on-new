@@ -41,7 +41,7 @@ export const publicInvoiceUrl = (invoiceNumber: string) => {
   const origin =
     typeof window !== 'undefined' && window.location?.origin && !window.location.origin.includes('localhost')
       ? window.location.origin
-      : 'https://thenn-nadu-legacy.vercel.app'
+      : 'https://specson.vercel.app'
   return `${origin}/invoice/${encodeURIComponent(formatted)}`
 }
 
@@ -54,7 +54,7 @@ export const buildProfessionalWhatsAppMessage = (input: BuildWhatsAppMessageInpu
   const itemsText = input.items && input.items.length > 0
     ? input.items.map(item => {
         const originalLineAmt = Number(item.rate || 0) * Number(item.qty || 1)
-        return `• ${item.name} (x${item.qty}) – RM ${originalLineAmt.toFixed(2)}`
+        return `• ${item.name} (x${item.qty}) – ₹ ${originalLineAmt.toFixed(2)}`
       }).join('\n')
     : ''
 
@@ -69,41 +69,41 @@ export const buildProfessionalWhatsAppMessage = (input: BuildWhatsAppMessageInpu
 
   const totalsLines: string[] = []
   if (input.items && input.items.length > 0) {
-    totalsLines.push(`Subtotal: RM ${subtotal.toFixed(2)}`)
+    totalsLines.push(`Subtotal: ₹ ${subtotal.toFixed(2)}`)
   }
   if (totalDiscount > 0) {
-    totalsLines.push(`Discount: -RM ${totalDiscount.toFixed(2)}`)
+    totalsLines.push(`Discount: -₹ ${totalDiscount.toFixed(2)}`)
   }
   if (shipping > 0) {
-    totalsLines.push(`Shipping: RM ${shipping.toFixed(2)}`)
+    totalsLines.push(`Shipping: ₹ ${shipping.toFixed(2)}`)
   }
   if (gst > 0) {
-    totalsLines.push(`GST: RM ${gst.toFixed(2)}`)
+    totalsLines.push(`GST: ₹ ${gst.toFixed(2)}`)
   }
   if (input.total !== undefined) {
-    totalsLines.push(`*Total Amount: RM ${total.toFixed(2)}*`)
+    totalsLines.push(`*Total Amount: ₹ ${total.toFixed(2)}*`)
   }
 
   const totalsText = totalsLines.join('\n')
 
-  return `✨ *THENN NADU TAILORING* ✨
+  return `✨ *Specson* ✨
 🧵 *Official Purchase Invoice & Receipt* 🧵
 
 Dear ${customerName},
 
-Thank you for shopping with Thenn Nadu Tailoring! We truly appreciate your order.
+Thank you for shopping with Specson! We truly appreciate your order.
 
 🧾 *INVOICE DETAILS*
 📌 *Invoice No:* #${formattedNo}
-${input.invoiceDate ? `📅 *Date:* ${new Date(input.invoiceDate).toLocaleDateString('en-MY')}\n` : ''}${input.paymentMode ? `💳 *Payment Mode:* ${input.paymentMode}\n` : ''}
-${itemsText ? `📦 *ITEMS ORDERED:*\n${itemsText}\n\n${totalsText}\n` : input.total !== undefined ? `💰 *Total Amount:* RM ${total.toFixed(2)}\n` : ''}
+${input.invoiceDate ? `📅 *Date:* ${new Date(input.invoiceDate).toLocaleDateString('en-IN')}\n` : ''}${input.paymentMode ? `💳 *Payment Mode:* ${input.paymentMode}\n` : ''}
+${itemsText ? `📦 *ITEMS ORDERED:*\n${itemsText}\n\n${totalsText}\n` : input.total !== undefined ? `💰 *Total Amount:* ₹ ${total.toFixed(2)}\n` : ''}
 📄 *View & Download Digital Invoice / PDF:*
 👉 ${invoiceUrl}
 
 🙏 Thank you, and we hope to see you again soon!
 
 Follow us on Instagram:
-https://www.instagram.com/thenn_nadu`
+https://www.instagram.com/specson`
 }
 
 export const buildAdvanceDepositWhatsAppMessage = (input: AdvanceDepositWhatsAppInput) => {
@@ -111,7 +111,7 @@ export const buildAdvanceDepositWhatsAppMessage = (input: AdvanceDepositWhatsApp
   const deliveryDateFormatted = input.expectedDeliveryDate
     ? (() => {
         try {
-          return new Date(`${input.expectedDeliveryDate}T00:00:00`).toLocaleDateString('en-MY', {
+          return new Date(`${input.expectedDeliveryDate}T00:00:00`).toLocaleDateString('en-IN', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -122,18 +122,18 @@ export const buildAdvanceDepositWhatsAppMessage = (input: AdvanceDepositWhatsApp
       })()
     : '-'
 
-  return `🧵 Thank You for Your Advance Order with Thenn Nadu Tailoring! 🧵
+  return `🧵 Thank You for Your Advance Order with Specson! 🧵
 
 Dear ${customerName},
 
-✨ Thank you for choosing Thenn Nadu Tailoring. We have successfully received your initial advance payment!
+✨ Thank you for choosing Specson. We have successfully received your initial advance payment!
 
 🧾 Advance Deposit Details 👇
 📦 Deposit ID: ${input.depositId}
 👗 Product: ${input.productName}
-💵 Total Order Amount: RM ${input.totalAmount}
-💰 Advance Paid: RM ${input.depositAmount}${input.paymentMethod ? ` (${input.paymentMethod.toLowerCase() === 'upi' ? 'QR' : input.paymentMethod.toUpperCase()})` : ''}
-🔴 Balance to Pay on Delivery: RM ${input.remainingBalance}
+💵 Total Order Amount: ₹ ${input.totalAmount}
+💰 Advance Paid: ₹ ${input.depositAmount}${input.paymentMethod ? ` (${input.paymentMethod.toLowerCase() === 'upi' ? 'QR' : input.paymentMethod.toUpperCase()})` : ''}
+🔴 Balance to Pay on Delivery: ₹ ${input.remainingBalance}
 📅 Expected Delivery Date: ${deliveryDateFormatted}
 
 .
@@ -145,4 +145,4 @@ Dear ${customerName},
 🙏 Thank you for paying the initial amount as advance!`
 }
 
-export const BUSINESS_PHONE = '60164091130'
+export const BUSINESS_PHONE = '91XXXXXXXXXX'

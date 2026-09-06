@@ -1,5 +1,5 @@
--- Thenn Nadu Legacy billing schema.
--- Safe to run against a fresh project or the existing Thenn Nadu Legacy project.
+-- Specson billing schema.
+-- Safe to run against a fresh project or the existing Specson project.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -181,11 +181,11 @@ ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.store_settings (
   id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-  name TEXT NOT NULL DEFAULT 'Thenn Nadu Tailoring',
+  name TEXT NOT NULL DEFAULT 'Specson',
   owner_name TEXT NOT NULL DEFAULT '',
-  phone TEXT NOT NULL DEFAULT '+60 16-409 1130',
-  email TEXT NOT NULL DEFAULT 'thennnadulegacy@gmail.com',
-  address TEXT NOT NULL DEFAULT 'No. 4A 1st Floor & 15, Market Street, 10200 Georgetown, Penang',
+  phone TEXT NOT NULL DEFAULT '+91 XXXXXXXXXX',
+  email TEXT NOT NULL DEFAULT 'Specson3@gmail.com',
+  address TEXT NOT NULL DEFAULT 'RCC House, Door No. M-253, Phase-10, Rayakottai Road, Hosur-635109, Krishnagiri District, Tamil Nadu',
   gst_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -193,10 +193,10 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
 INSERT INTO public.store_settings (id, name, phone, email, address)
 VALUES (
   1,
-  'Thenn Nadu Tailoring',
-  '+60 16-409 1130',
-  'thennnadulegacy@gmail.com',
-  'No. 4A 1st Floor & 15, Market Street, 10200 Georgetown, Penang'
+  'Specson',
+  '+91 XXXXXXXXXX',
+  'Specson3@gmail.com',
+  'RCC House, Door No. M-253, Phase-10, Rayakottai Road, Hosur-635109, Krishnagiri District, Tamil Nadu'
 )
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
@@ -552,7 +552,7 @@ $$;
 
 
 
--- Thenn Nadu Legacy initial catalog. Existing matching products are preserved.
+-- Specson initial catalog. Existing matching products are preserved.
 
 INSERT INTO public.categories (name_en, name_ta, is_active, sort_order)
 VALUES
@@ -668,7 +668,7 @@ WHERE p.category_id = c.id
 
 
 
--- Align the live legacy billing schema with the current Thenn Nadu Legacy RPC payload.
+-- Align the live legacy billing schema with the current Specson RPC payload.
 -- Idempotent: safe for both upgraded and freshly migrated projects.
 
 BEGIN;

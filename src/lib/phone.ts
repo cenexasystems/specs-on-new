@@ -1,5 +1,5 @@
-// Malaysian phone number validation (+60 format)
-// Accepts: +60XXXXXXXXX, 60XXXXXXXXX, 01XXXXXXXX, 011XXXXXXXX
+// Indian phone number validation (+91 format)
+// Accepts: +91XXXXXXXXXX, 91XXXXXXXXXX, 6XXXXXXXXX to 9XXXXXXXXX (10-digit mobiles)
 export function normalizePhone(input: string): string | null {
   if (!input) return null
 
@@ -9,17 +9,17 @@ export function normalizePhone(input: string): string | null {
 
   let digits = raw
 
-  if (digits.startsWith('60') && digits.length >= 10 && digits.length <= 12) {
-    // Already 60XXXXXXXXX — keep as-is
-  } else if (digits.startsWith('0') && digits.length >= 9 && digits.length <= 11) {
-    // 01XXXXXXXX or 011XXXXXXXX → prepend country code
-    digits = '6' + digits
+  if (digits.startsWith('91') && digits.length === 12) {
+    // Already 91XXXXXXXXXX — keep as-is
+  } else if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    // 10-digit Indian mobile → prepend country code
+    digits = '91' + digits
   } else {
     return null
   }
 
-  // Malaysian mobiles: 601[0-9]XXXXXXX (10–12 digits total with 60)
-  if (!/^60[0-9]{8,10}$/.test(digits)) return null
+  // Indian mobiles: 91[6-9]XXXXXXXXX (12 digits total)
+  if (!/^91[6-9][0-9]{9}$/.test(digits)) return null
 
   return digits
 }
@@ -38,11 +38,11 @@ export function normalizePhoneForWhatsApp(input: string): string {
   const digits = input.replace(/\D/g, '')
   if (!digits) return ''
 
-  if (digits.startsWith('60') && digits.length >= 10) {
+  if (digits.startsWith('91') && digits.length === 12) {
     return digits
   }
-  if (digits.startsWith('0') && digits.length >= 9) {
-    return '6' + digits
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    return '91' + digits
   }
   return digits
 }

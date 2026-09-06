@@ -112,7 +112,7 @@ export default function Expenses() {
     const rows = [
       ['Date', 'Category', 'Description', 'Amount'],
       ...filteredExpenses.map(exp => [
-        new Date(exp.expense_date).toLocaleDateString('en-MY'),
+        new Date(exp.expense_date).toLocaleDateString('en-IN'),
         exp.expense_categories?.name || 'Unknown',
         exp.description || '',
         exp.amount.toFixed(2),
@@ -161,7 +161,7 @@ export default function Expenses() {
     <div className="p-4 sm:p-6 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-3">
-          <Receipt size={24} className="text-[#E87020]" />
+          <Receipt size={24} className="text-[#3B261B]" />
           <h2 className="text-[22px] font-black text-[#111111]">Expense Tracker</h2>
         </div>
       </div>
@@ -174,8 +174,8 @@ export default function Expenses() {
       )}
 
       <div className="flex gap-2 bg-[#F3F4F6] rounded-2xl p-1.5 w-fit">
-        <button onClick={() => setTab('expenses')} className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${tab === 'expenses' ? 'bg-[#E87020] text-white shadow-sm' : 'text-[#6B7280] hover:text-[#111111]'}`}>Expenses</button>
-        <button onClick={() => setTab('categories')} className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${tab === 'categories' ? 'bg-[#E87020] text-white shadow-sm' : 'text-[#6B7280] hover:text-[#111111]'}`}>Categories</button>
+        <button onClick={() => setTab('expenses')} className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${tab === 'expenses' ? 'bg-[#3B261B] text-white shadow-sm' : 'text-[#6B7280] hover:text-[#111111]'}`}>Expenses</button>
+        <button onClick={() => setTab('categories')} className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${tab === 'categories' ? 'bg-[#3B261B] text-white shadow-sm' : 'text-[#6B7280] hover:text-[#111111]'}`}>Categories</button>
       </div>
 
       {tab === 'expenses' && (
@@ -188,7 +188,7 @@ export default function Expenses() {
               { label: 'This Year', value: formatCurrency(totalYear), color: 'text-red-600' },
               { label: 'Total All Time', value: formatCurrency(totalAll), color: 'text-[#111111]' },
             ].map((c, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-[#FDDBB4]/60 p-3 sm:p-4 shadow-sm">
+              <div key={i} className="bg-white rounded-2xl border border-[#D8D0C5]/60 p-3 sm:p-4 shadow-sm">
                 <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280] mb-1">{c.label}</p>
                 <p className={`text-[16px] xl:text-[20px] font-black ${c.color} truncate`} title={c.value}>{c.value}</p>
               </div>
@@ -196,7 +196,7 @@ export default function Expenses() {
           </div>
 
           {/* Filter bar */}
-          <div className="bg-white rounded-2xl border border-[#FDDBB4]/60 shadow-sm px-4 py-3 flex flex-wrap items-center gap-3">
+          <div className="bg-white rounded-2xl border border-[#D8D0C5]/60 shadow-sm px-4 py-3 flex flex-wrap items-center gap-3">
             {/* FROM date */}
             <div className="flex items-center gap-2 border border-[#E5E7EB] rounded-xl px-3 py-2 bg-[#F9FAFB]">
               <span className="text-[11px] font-black uppercase text-[#6B7280]">From</span>
@@ -238,16 +238,16 @@ export default function Expenses() {
               <button onClick={handleExportCSV} className="flex items-center gap-2 border border-[#E5E7EB] bg-white text-[#374151] px-3 py-2 rounded-xl text-[12px] font-black hover:bg-[#F9FAFB] transition-colors">
                 <Download size={14} /> Export CSV
               </button>
-              <button onClick={() => setShowModal(true)} disabled={dbError} className="bg-[#E87020] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#C85C10] disabled:opacity-50">
+              <button onClick={() => setShowModal(true)} disabled={dbError} className="bg-[#3B261B] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#1A1410] disabled:opacity-50">
                 <Plus size={16} /> Record Expense
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+                <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                   <tr>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Date</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Category</th>
@@ -264,10 +264,10 @@ export default function Expenses() {
                       {expenses.length === 0 ? 'No expenses recorded yet.' : 'No expenses in the selected date range.'}
                     </td></tr>
                   ) : filteredExpenses.map(exp => (
-                    <tr key={exp.id} className="border-b border-[#FDDBB4]/30 hover:bg-[#FAFAFA]">
-                      <td className="px-4 py-3 text-sm font-semibold text-[#111111]">{new Date(exp.expense_date).toLocaleDateString('en-MY')}</td>
+                    <tr key={exp.id} className="border-b border-[#D8D0C5]/30 hover:bg-[#FAFAFA]">
+                      <td className="px-4 py-3 text-sm font-semibold text-[#111111]">{new Date(exp.expense_date).toLocaleDateString('en-IN')}</td>
                       <td className="px-4 py-3">
-                        <span className="bg-[#FFF8F2] text-[#E87020] border border-[#FDDBB4] px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
+                        <span className="bg-[#F5F3EF] text-[#3B261B] border border-[#D8D0C5] px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
                           {exp.expense_categories?.name || 'Unknown'}
                         </span>
                       </td>
@@ -287,16 +287,16 @@ export default function Expenses() {
 
       {tab === 'categories' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 p-5">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 p-5">
             <h3 className="text-base font-black text-[#111111] mb-4">Add Category</h3>
             <form onSubmit={handleAddCategory} className="flex gap-2">
-              <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="e.g. Utility Bills" className="flex-1 border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required disabled={dbError} />
-              <button type="submit" disabled={dbError} className="bg-[#E87020] text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-[#C85C10] disabled:opacity-50">Add</button>
+              <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="e.g. Utility Bills" className="flex-1 border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" required disabled={dbError} />
+              <button type="submit" disabled={dbError} className="bg-[#3B261B] text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-[#1A1410] disabled:opacity-50">Add</button>
             </form>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
             <table className="w-full text-left">
-              <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+              <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                 <tr>
                   <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Category Name</th>
                   <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151] text-center">Status</th>
@@ -307,7 +307,7 @@ export default function Expenses() {
                 {categories.length === 0 ? (
                   <tr><td colSpan={3} className="text-center p-6 text-[#6B7280] text-sm font-bold">No categories added.</td></tr>
                 ) : categories.map(cat => (
-                  <tr key={cat.id} className="border-b border-[#FDDBB4]/30 hover:bg-[#FAFAFA]">
+                  <tr key={cat.id} className="border-b border-[#D8D0C5]/30 hover:bg-[#FAFAFA]">
                     <td className="px-4 py-3 font-bold text-[#111111] text-sm">{cat.name}</td>
                     <td className="px-4 py-3 text-center">
                       <button onClick={() => toggleCategory(cat)} className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg border ${cat.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
@@ -337,26 +337,26 @@ export default function Expenses() {
             <form onSubmit={handleSaveExpense} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Date</label>
-                <input type="date" value={form.expense_date} onChange={e => setForm({...form, expense_date: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required />
+                <input type="date" value={form.expense_date} onChange={e => setForm({...form, expense_date: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" required />
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Category</label>
-                <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020] bg-white" required>
+                <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B] bg-white" required>
                   <option value="">Select Category</option>
                   {categories.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Amount (RM)</label>
-                <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required placeholder="0.00" />
+                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Amount (₹)</label>
+                <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" required placeholder="0.00" />
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Description / Note</label>
-                <input type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" placeholder="Optional details..." />
+                <input type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" placeholder="Optional details..." />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-100 p-3 rounded-xl font-bold text-sm hover:bg-gray-200">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 bg-[#E87020] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#C85C10] disabled:opacity-50">{submitting ? 'Saving...' : 'Save Expense'}</button>
+                <button type="submit" disabled={submitting} className="flex-1 bg-[#3B261B] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#1A1410] disabled:opacity-50">{submitting ? 'Saving...' : 'Save Expense'}</button>
               </div>
             </form>
           </div>

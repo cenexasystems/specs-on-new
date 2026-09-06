@@ -7,15 +7,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        bgMain:    '#FFF8F2',
-        cardBg:    '#FFFFFF',
+        // ── Specson brand palette ──────────────────────────────────────────
+        ivory:        '#F5F3EF', // background / base surface
+        'choc-brown': '#3B261B', // primary text / primary buttons
+        'near-black': '#1A1410', // headings / high-contrast elements
+        'warm-beige': '#D8D0C5', // secondary surfaces, cards, borders, hover
+
+        // Semantic aliases (used as Tailwind utilities across the codebase)
+        bgMain:      '#F5F3EF',
+        cardBg:      '#D8D0C5',
+        textMain:    '#1A1410',
+        textMuted:   '#6B7280',
+        borderLight: '#D8D0C5',
+
+        // 'maroon' kept as the button/accent colour — now Choc Brown
         maroon: {
-          DEFAULT: '#E87020', // Thenn Nadu Orange
-          dark: '#C85C10', // Thenn Nadu Deep Orange
+          DEFAULT: '#3B261B',
+          dark:    '#1A1410',
         },
-        textMain:  '#111111',
-        textMuted: '#6B7280',
-        borderLight: '#FDDBB4', // Light Orange
       },
       fontFamily: {
         sans:      ['Inter', 'sans-serif'],

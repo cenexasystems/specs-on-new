@@ -11,6 +11,7 @@ import { useSound } from '../context/SoundContext'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { useProductStore, useVariantStore, useAdminAuthStore, type Product } from '../store/store'
 import { Invoice } from '../components/Invoice'
+import PosItemAdder from '../components/PosItemAdder'
 import CatalogModal from '../components/CatalogModal'
 import AddProductModal from '../components/AddProductModal'
 import { invoicePdfFile } from '../lib/invoicePdf'
@@ -114,7 +115,7 @@ type PosProps = {
 
 export default function Pos(props: PosProps = {}) {
   const { play } = useSound()
-  const { products, fetchProducts } = useProductStore()
+  const { products, categories: dbCats, lensAddons, fetchProducts } = useProductStore()
   const { getVariants, fetchVariants } = useVariantStore()
   const { lang } = useLangStore()
   const l = (en: string, ta: string) => lang === 'ta' ? ta : en
@@ -192,10 +193,11 @@ export default function Pos(props: PosProps = {}) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const categories = useMemo(() => {
     // Use DB active categories in sort_order; fall back to product categories if DB returns nothing
-    if (dbCategories.length > 0) return ['All', ...dbCategories]
+    if (dbCats && dbCats.length > 0) return ['All', ...dbCats.map((c: any) => c.name)]
     const cats = Array.from(new Set(products.filter(p => p.isActive).map(p => p.category))).filter(Boolean)
     return ['All', ...cats]
-  }, [dbCategories, products])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dbCats, products])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const filtered = useMemo(() => {
@@ -722,11 +724,11 @@ export default function Pos(props: PosProps = {}) {
         {/* Low Stock Alert Toast — shown on invoice screen after billing */}
         {lowStockAlert.length > 0 && (
           <div className="fixed top-4 right-4 z-[9999] max-w-sm w-full">
-            <div className="bg-white border-2 border-orange-400 rounded-2xl shadow-2xl p-4">
+            <div className="bg-white border-2 border-choc-brown/80 rounded-2xl shadow-2xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="bg-orange-100 p-2 rounded-xl shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  <div className="bg-warm-beige/40 p-2 rounded-xl shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-choc-brown" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                   </div>
                   <div>
                     <p className="text-[13px] font-black text-[#111111]">⚠️ Low Stock Alert!</p>
@@ -734,9 +736,9 @@ export default function Pos(props: PosProps = {}) {
                     <ul className="mt-2 space-y-1">
                       {lowStockAlert.map((item, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.stock <= 0 ? 'bg-red-500' : 'bg-orange-400'}`} />
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.stock <= 0 ? 'bg-red-500' : 'bg-choc-brown/80'}`} />
                           <span className="text-[12px] font-bold text-[#111111]">{item.name}</span>
-                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-warm-beige/40 text-choc-brown'}`}>
                             {item.stock <= 0 ? 'Out of Stock' : `${item.stock} left`}
                           </span>
                         </li>
@@ -851,11 +853,11 @@ export default function Pos(props: PosProps = {}) {
       {/* Low Stock Alert Toast */}
       {lowStockAlert.length > 0 && (
         <div className="fixed top-4 right-4 z-[9999] max-w-sm w-full animate-in slide-in-from-top-2">
-          <div className="bg-white border-2 border-orange-400 rounded-2xl shadow-2xl p-4">
+          <div className="bg-white border-2 border-choc-brown/80 rounded-2xl shadow-2xl p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="bg-orange-100 p-2 rounded-xl shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <div className="bg-warm-beige/40 p-2 rounded-xl shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-choc-brown" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                 </div>
                 <div>
                   <p className="text-[13px] font-black text-[#111111]">⚠️ Low Stock Alert!</p>
@@ -863,9 +865,9 @@ export default function Pos(props: PosProps = {}) {
                   <ul className="mt-2 space-y-1">
                     {lowStockAlert.map((item, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${item.stock <= 0 ? 'bg-red-500' : 'bg-orange-400'}`} />
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${item.stock <= 0 ? 'bg-red-500' : 'bg-choc-brown/80'}`} />
                         <span className="text-[12px] font-bold text-[#111111]">{item.name}</span>
-                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-warm-beige/40 text-choc-brown'}`}>
                           {item.stock <= 0 ? 'Out of Stock' : `${item.stock} left`}
                         </span>
                       </li>
@@ -884,8 +886,8 @@ export default function Pos(props: PosProps = {}) {
       {/* Header */}
       <div className="px-4 pt-4 pb-3 md:px-6 md:pt-6 md:pb-4 shrink-0 flex flex-col gap-4 min-[480px]:flex-row min-[480px]:items-start min-[480px]:justify-between">
         <div className="min-w-0">
-          <h2 className="text-[28px] md:text-[22px] font-black text-[#E87020] flex items-start gap-2 leading-tight">
-            <div className="w-1.5 h-6 bg-[#E87020] rounded-full"></div>
+          <h2 className="text-[28px] md:text-[22px] font-black text-[#3B261B] flex items-start gap-2 leading-tight">
+            <div className="w-1.5 h-6 bg-[#3B261B] rounded-full"></div>
             POS Billing Panel
           </h2>
           <p className="text-[13px] md:text-[12px] text-gray-500 font-medium ml-3.5 mt-1 pr-2">Quick Invoice generator & database synced checkout</p>
@@ -896,13 +898,13 @@ export default function Pos(props: PosProps = {}) {
           <div className="grid grid-cols-2 bg-white rounded-xl border border-[#FDDBB4]/60 p-1 shadow-sm flex-1 min-[480px]:flex-none">
             <button
               onClick={() => setOrdermode('offline')}
-              className={`min-h-[44px] px-4 py-2 rounded-lg text-[12px] md:text-[11px] font-black tracking-wider uppercase transition-colors ${ordermode === 'offline' ? 'bg-[#E87020] text-white' : 'text-[#374151] hover:bg-[#F9FAFB]'}`}
+              className={`min-h-[44px] px-4 py-2 rounded-lg text-[12px] md:text-[11px] font-black tracking-wider uppercase transition-colors ${ordermode === 'offline' ? 'bg-[#3B261B] text-white' : 'text-[#374151] hover:bg-[#F9FAFB]'}`}
             >
               Offline
             </button>
             <button
               onClick={() => setOrdermode('online')}
-              className={`min-h-[44px] px-4 py-2 rounded-lg text-[12px] md:text-[11px] font-black tracking-wider uppercase transition-colors ${ordermode === 'online' ? 'bg-[#E87020] text-white' : 'text-[#374151] hover:bg-[#F9FAFB]'}`}
+              className={`min-h-[44px] px-4 py-2 rounded-lg text-[12px] md:text-[11px] font-black tracking-wider uppercase transition-colors ${ordermode === 'online' ? 'bg-[#3B261B] text-white' : 'text-[#374151] hover:bg-[#F9FAFB]'}`}
             >
               Online
             </button>
@@ -936,7 +938,7 @@ export default function Pos(props: PosProps = {}) {
           {/* Customer Details Card */}
           <div className="bg-white rounded-2xl border border-[#FDDBB4]/40 shadow-sm p-4 md:p-5">
             <h3 className="text-[18px] md:text-[14px] font-black text-[#111111] flex items-center gap-2 mb-4">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#E87020]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#3B261B]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               Customer Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -947,7 +949,7 @@ export default function Pos(props: PosProps = {}) {
                   value={customer.name}
                   onChange={e => setCustomer({...customer, name: e.target.value})}
                   placeholder="Enter name"
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
                 />
               </div>
               <div>
@@ -957,7 +959,7 @@ export default function Pos(props: PosProps = {}) {
                   value={customer.phone}
                   onChange={e => setCustomer({...customer, phone: e.target.value})}
                   placeholder="Enter WhatsApp number"
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
                 />
               </div>
               <div>
@@ -967,7 +969,7 @@ export default function Pos(props: PosProps = {}) {
                   value={remarks}
                   onChange={e => setRemarks(e.target.value)}
                   placeholder="Optional remarks"
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
                 />
               </div>
               <div>
@@ -977,7 +979,7 @@ export default function Pos(props: PosProps = {}) {
                   value={referenceNumber}
                   onChange={e => setReferenceNumber(e.target.value)}
                   placeholder="Optional ref no."
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
                 />
               </div>
               <div>
@@ -987,7 +989,7 @@ export default function Pos(props: PosProps = {}) {
                   value={tailorName}
                   onChange={e => setTailorName(e.target.value)}
                   placeholder="Optional tailor name"
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111] placeholder:text-gray-400 placeholder:font-medium"
                 />
               </div>
               <div>
@@ -997,7 +999,7 @@ export default function Pos(props: PosProps = {}) {
                   type="date"
                   value={billingDate}
                   onChange={e => setBillingDate(e.target.value)}
-                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[16px] md:text-[13px] font-bold text-[#111111]"
+                  className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111]"
                 />
                 <p className="mt-1 text-[10px] text-gray-400 font-medium">Leave blank to use today's date &amp; time</p>
               </div>
@@ -1009,7 +1011,7 @@ export default function Pos(props: PosProps = {}) {
             {/* Card Header */}
             <div className="flex flex-col gap-4 p-4 md:p-5 border-b border-[#FDDBB4]/40">
               <h3 className="text-[18px] md:text-[14px] font-black text-[#111111] flex items-center gap-2">
-                <Receipt size={16} className="text-[#E87020]" />
+                <Receipt size={16} className="text-[#3B261B]" />
                 Order Items
               </h3>
               <div className="grid grid-cols-2 md:flex md:items-stretch gap-2">
@@ -1021,19 +1023,19 @@ export default function Pos(props: PosProps = {}) {
                 </button>
                 <button
                   onClick={() => setCatalogOpen(true)}
-                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg border border-[#E87020] text-[#E87020] text-[12px] md:text-[11px] font-black hover:bg-[#E87020]/5 transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
+                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg border border-[#3B261B] text-[#3B261B] text-[12px] md:text-[11px] font-black hover:bg-[#3B261B]/5 transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
                 >
                   <Search size={12} /> SEARCH CATALOG
                 </button>
                 <button
                   onClick={() => setAddProductOpen(true)}
-                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg bg-[#E87020] text-white text-[12px] md:text-[11px] font-black hover:bg-[#065F46] transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
+                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg bg-[#3B261B] text-white text-[12px] md:text-[11px] font-black hover:bg-[#1A1410] transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
                 >
                   <Plus size={12} /> ADD TO CATALOG
                 </button>
                 <button
                   onClick={() => setCustomItemOpen(open => !open)}
-                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg border border-[#E87020] text-[#E87020] text-[12px] md:text-[11px] font-black hover:bg-[#E87020]/5 transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
+                  className="min-h-[44px] w-full md:w-auto px-3 py-2 rounded-lg border border-[#3B261B] text-[#3B261B] text-[12px] md:text-[11px] font-black hover:bg-[#3B261B]/5 transition-colors flex items-center justify-center gap-1.5 text-center md:flex-1"
                 >
                   + ADD CUSTOM ITEM
                 </button>
@@ -1049,19 +1051,19 @@ export default function Pos(props: PosProps = {}) {
                     value={manualName}
                     onChange={e => setManualName(e.target.value)}
                     placeholder="Product name"
-                    className="h-10 rounded-lg border border-[#FDDBB4]/70 bg-white px-3 text-[12px] font-bold text-[#111111] outline-none focus:border-[#E87020]"
+                    className="h-10 rounded-lg border border-[#FDDBB4]/70 bg-white px-3 text-[12px] font-bold text-[#111111] outline-none focus:border-[#3B261B]"
                   />
                   <input
                     step="0.01"
                     type="number" onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     value={manualPrice}
                     onChange={e => setManualPrice(e.target.value)}
-                    placeholder="Price (RM, optional)"
-                    className="h-10 rounded-lg border border-[#FDDBB4]/70 bg-white px-3 text-[12px] font-bold text-[#111111] outline-none focus:border-[#E87020]"
+                    placeholder="Price (₹, optional)"
+                    className="h-10 rounded-lg border border-[#FDDBB4]/70 bg-white px-3 text-[12px] font-bold text-[#111111] outline-none focus:border-[#3B261B]"
                   />
                   <button
                     type="submit"
-                    className="h-10 rounded-lg bg-[#E87020] px-4 text-[11px] font-black text-white hover:bg-[#065F46]"
+                    className="h-10 rounded-lg bg-[#3B261B] px-4 text-[11px] font-black text-white hover:bg-[#1A1410]"
                   >
                     ADD ITEM
                   </button>
@@ -1072,7 +1074,7 @@ export default function Pos(props: PosProps = {}) {
             {/* Table Header */}
             <div className="hidden md:grid grid-cols-[1fr_100px_120px_40px] gap-3 px-5 py-3 border-b border-[#FDDBB4]/20 bg-[#FAFAFA]">
               <span className="text-[10px] font-black text-[#374151] tracking-wider uppercase">Item Name / Description</span>
-              <span className="text-[10px] font-black text-[#374151] tracking-wider uppercase text-right">Price (RM)</span>
+              <span className="text-[10px] font-black text-[#374151] tracking-wider uppercase text-right">Price (₹)</span>
               <span className="text-[10px] font-black text-[#374151] tracking-wider uppercase text-center">Qty</span>
               <span></span>
             </div>
@@ -1098,7 +1100,7 @@ export default function Pos(props: PosProps = {}) {
                             value={item.name}
                             onChange={e => updateItem(item.id, 'name', e.target.value)}
                             placeholder="Item name"
-                            className="w-full h-12 px-3 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-xl text-[16px] font-bold text-[#111111] focus:outline-none focus:border-[#E87020]"
+                            className="w-full h-12 px-3 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-xl text-[16px] font-bold text-[#111111] focus:outline-none focus:border-[#3B261B]"
                           />
                         ) : (
                           <div className="rounded-xl border border-[#FDDBB4]/30 bg-white px-3 py-3">
@@ -1123,7 +1125,7 @@ export default function Pos(props: PosProps = {}) {
                           value={item.basePrice === 0 ? '' : item.basePrice}
                           onChange={e => updateItem(item.id, 'basePrice', e.target.value)}
                           placeholder="0"
-                          className={`w-full h-12 px-3 border rounded-xl text-[16px] font-black text-right focus:outline-none focus:border-[#E87020] ${
+                          className={`w-full h-12 px-3 border rounded-xl text-[16px] font-black text-right focus:outline-none focus:border-[#3B261B] ${
                             item.source === 'manual'
                               ? 'bg-[#FAFAFA] border-[#FDDBB4]/40 text-[#111111]'
                               : 'bg-white border-[#D9E4D7] text-[#111111]'
@@ -1132,7 +1134,7 @@ export default function Pos(props: PosProps = {}) {
                       </div>
                       <div>
                         <p className="text-[13px] font-black uppercase tracking-wider text-[#374151] mb-1">Total</p>
-                        <div className="h-12 rounded-xl border border-[#FDDBB4]/30 bg-white px-3 flex items-center justify-end text-[16px] font-black text-[#E87020]">
+                        <div className="h-12 rounded-xl border border-[#FDDBB4]/30 bg-white px-3 flex items-center justify-end text-[16px] font-black text-[#3B261B]">
                           {formatCurrency(item.lineTotal)}
                         </div>
                       </div>
@@ -1154,7 +1156,7 @@ export default function Pos(props: PosProps = {}) {
                     </div>
                   </div>
 
-                  <div className="hidden md:grid grid-cols-[1fr_100px_120px_40px] items-center gap-3 p-2 bg-white border border-[#FDDBB4]/30 rounded-xl hover:border-[#E87020]/30 transition-colors">
+                  <div className="hidden md:grid grid-cols-[1fr_100px_120px_40px] items-center gap-3 p-2 bg-white border border-[#FDDBB4]/30 rounded-xl hover:border-[#3B261B]/30 transition-colors">
                     {/* Item Name */}
                     <div className="min-w-0 flex items-center gap-2">
                       {item.source === 'manual' ? (
@@ -1163,7 +1165,7 @@ export default function Pos(props: PosProps = {}) {
                           value={item.name}
                           onChange={e => updateItem(item.id, 'name', e.target.value)}
                           placeholder="Item name"
-                          className="w-full px-3 py-2 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-lg text-[13px] font-bold text-[#111111] focus:outline-none focus:border-[#E87020]"
+                          className="w-full px-3 py-2 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-lg text-[13px] font-bold text-[#111111] focus:outline-none focus:border-[#3B261B]"
                         />
                       ) : (
                         <div className="px-3 py-2 w-full truncate border border-transparent flex items-center gap-2">
@@ -1171,7 +1173,7 @@ export default function Pos(props: PosProps = {}) {
                         </div>
                       )}
                       {item.source !== 'manual' && (
-                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded border border-[#E87020]/20 text-[#E87020] text-[9px] font-black tracking-wider uppercase shrink-0 bg-[#E87020]/5">
+                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded border border-[#3B261B]/20 text-[#3B261B] text-[9px] font-black tracking-wider uppercase shrink-0 bg-[#3B261B]/5">
                           CATALOG
                         </span>
                       )}
@@ -1184,7 +1186,7 @@ export default function Pos(props: PosProps = {}) {
                         value={item.basePrice === 0 ? '' : item.basePrice}
                         onChange={e => updateItem(item.id, 'basePrice', e.target.value)}
                         placeholder="0"
-                        className={`w-full px-3 py-2 border rounded-lg text-[13px] font-black text-right focus:outline-none focus:border-[#E87020] ${
+                        className={`w-full px-3 py-2 border rounded-lg text-[13px] font-black text-right focus:outline-none focus:border-[#3B261B] ${
                           item.source === 'manual'
                             ? 'bg-[#FAFAFA] border-[#FDDBB4]/40 text-[#111111]'
                             : 'bg-white border-[#D9E4D7] text-[#111111]'
@@ -1226,7 +1228,7 @@ export default function Pos(props: PosProps = {}) {
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-[#FDDBB4]/60 bg-white shrink-0">
               <h3 className="text-[18px] md:text-[14px] font-black text-[#111111] flex items-center gap-2">
-                <Receipt size={16} className="text-[#E87020]" />
+                <Receipt size={16} className="text-[#3B261B]" />
                 Current Order
               </h3>
               <span className={`px-2 py-1 rounded-full border text-[9px] font-black tracking-wider uppercase flex items-center gap-1.5 ${ordermode === 'offline' ? 'border-red-200 text-red-600 bg-red-50' : 'border-green-200 text-green-600 bg-green-50'}`}>
@@ -1242,7 +1244,7 @@ export default function Pos(props: PosProps = {}) {
               <div className="border border-[#FDDBB4]/40 rounded-xl overflow-hidden text-[11px] font-bold">
                 <div className="flex justify-between px-3 py-2 border-b border-[#FDDBB4]/40 bg-[#FAFAFA]">
                   <span className="text-[#374151] uppercase">Source</span>
-                  <span className="text-[#E87020] border border-[#E87020]/30 bg-[#E87020]/5 px-1.5 rounded uppercase">{ordermode.toUpperCase()}</span>
+                  <span className="text-[#3B261B] border border-[#3B261B]/30 bg-[#3B261B]/5 px-1.5 rounded uppercase">{ordermode.toUpperCase()}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-0 border-b border-[#FDDBB4]/40">
                   <div className="p-2 border-r border-[#FDDBB4]/40">
@@ -1252,7 +1254,7 @@ export default function Pos(props: PosProps = {}) {
                       value={customer.name}
                       onChange={e => setCustomer({...customer, name: e.target.value})}
                       placeholder="Enter name"
-                      className="w-full h-8 px-2 bg-white border border-[#FDDBB4]/60 rounded-lg text-[12px] font-bold text-[#111111] focus:outline-none focus:border-[#E87020]"
+                      className="w-full h-8 px-2 bg-white border border-[#FDDBB4]/60 rounded-lg text-[12px] font-bold text-[#111111] focus:outline-none focus:border-[#3B261B]"
                     />
                   </div>
                   <div className="p-2">
@@ -1262,7 +1264,7 @@ export default function Pos(props: PosProps = {}) {
                       value={customer.phone}
                       onChange={e => setCustomer({...customer, phone: e.target.value})}
                       placeholder="Enter WhatsApp number"
-                      className={`w-full h-8 px-2 bg-white border rounded-lg text-[12px] font-bold text-[#111111] focus:outline-none ${customer.phone && !normalizePhone(customer.phone) ? 'border-red-400 bg-red-50' : 'border-[#FDDBB4]/60 focus:border-[#E87020]'}`}
+                      className={`w-full h-8 px-2 bg-white border rounded-lg text-[12px] font-bold text-[#111111] focus:outline-none ${customer.phone && !normalizePhone(customer.phone) ? 'border-red-400 bg-red-50' : 'border-[#FDDBB4]/60 focus:border-[#3B261B]'}`}
                     />
                   </div>
                 </div>
@@ -1295,7 +1297,7 @@ export default function Pos(props: PosProps = {}) {
                     placeholder="Enter code"
                     disabled={appliedCoupon !== null}
                     list="pos-coupons"
-                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-bold text-[#111111] focus:outline-none focus:border-[#E87020] uppercase disabled:bg-gray-100"
+                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-bold text-[#111111] focus:outline-none focus:border-[#3B261B] uppercase disabled:bg-gray-100"
                   />
                   <datalist id="pos-coupons">
                     {availableCoupons.map(c => (
@@ -1333,9 +1335,9 @@ export default function Pos(props: PosProps = {}) {
                     <select
                       value={manualDiscountType}
                       onChange={e => setManualDiscountType(e.target.value as 'flat'|'percent')}
-                      className="appearance-none h-9 bg-white border border-[#FDDBB4]/60 rounded-xl pl-2 pr-7 text-[12px] font-black text-[#111111] focus:outline-none focus:border-[#E87020]"
+                      className="appearance-none h-9 bg-white border border-[#FDDBB4]/60 rounded-xl pl-2 pr-7 text-[12px] font-black text-[#111111] focus:outline-none focus:border-[#3B261B]"
                     >
-                      <option value="flat">RM </option>
+                      <option value="flat">₹ </option>
                       <option value="percent">%</option>
                     </select>
                     <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#374151] pointer-events-none" />
@@ -1345,7 +1347,7 @@ export default function Pos(props: PosProps = {}) {
                     value={manualDiscountValue}
                     onChange={e => setManualDiscountValue(e.target.value)}
                     placeholder="0"
-                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#E87020]"
+                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#3B261B]"
                   />
                 </div>
               </div>
@@ -1356,7 +1358,7 @@ export default function Pos(props: PosProps = {}) {
                 <button
                   type="button"
                   onClick={() => setBillGstEnabled(!billGstEnabled)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors ${billGstEnabled ? 'bg-[#E87020]' : 'bg-[#FDDBB4]/60'}`}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors ${billGstEnabled ? 'bg-[#3B261B]' : 'bg-[#FDDBB4]/60'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white transition-transform ${billGstEnabled ? 'translate-x-4' : 'translate-x-0'}`}></div>
                 </button>
@@ -1368,10 +1370,10 @@ export default function Pos(props: PosProps = {}) {
                     <select
                       value={gstType}
                       onChange={e => setGstType(e.target.value as 'flat'|'percent')}
-                      className="appearance-none h-9 bg-white border border-[#FDDBB4]/60 rounded-xl pl-2 pr-7 text-[12px] font-black text-[#111111] focus:outline-none focus:border-[#E87020]"
+                      className="appearance-none h-9 bg-white border border-[#FDDBB4]/60 rounded-xl pl-2 pr-7 text-[12px] font-black text-[#111111] focus:outline-none focus:border-[#3B261B]"
                     >
                       <option value="percent">%</option>
-                      <option value="flat">RM </option>
+                      <option value="flat">₹ </option>
                     </select>
                     <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#374151] pointer-events-none" />
                   </div>
@@ -1380,7 +1382,7 @@ export default function Pos(props: PosProps = {}) {
                     value={gstInput}
                     onChange={e => setGstInput(e.target.value)}
                     placeholder={gstType === 'percent' ? "e.g. 6" : "0"}
-                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#E87020]"
+                    className="w-full h-9 px-3 bg-white border border-[#FDDBB4]/60 rounded-xl text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#3B261B]"
                   />
                 </div>
               )}
@@ -1405,7 +1407,7 @@ export default function Pos(props: PosProps = {}) {
                     type="number" onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     value={shipping}
                     onChange={e => setShipping(e.target.value)}
-                    className="w-20 h-8 px-2 bg-white border border-[#FDDBB4]/60 rounded-lg text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#E87020]"
+                    className="w-20 h-8 px-2 bg-white border border-[#FDDBB4]/60 rounded-lg text-[12px] font-black text-[#111111] text-right focus:outline-none focus:border-[#3B261B]"
                   />
                 </div>
 
@@ -1414,7 +1416,7 @@ export default function Pos(props: PosProps = {}) {
                 {/* Grand Total */}
                 <div className="flex items-center justify-between pt-0.5">
                   <span className="text-[12px] font-black text-[#111111] uppercase tracking-wider">Grand Total</span>
-                  <span className="text-[20px] font-black text-[#E87020] tracking-tight">{formatCurrency(total)}</span>
+                  <span className="text-[20px] font-black text-[#3B261B] tracking-tight">{formatCurrency(total)}</span>
                 </div>
               </div>
 
@@ -1429,8 +1431,8 @@ export default function Pos(props: PosProps = {}) {
                       onClick={() => setPaymentType(mode)}
                       className={`py-2 rounded-xl text-[11px] font-black uppercase tracking-wide border-2 transition-colors ${
                         paymentType === mode
-                          ? 'bg-[#E87020] text-white border-[#E87020]'
-                          : 'bg-white text-[#374151] border-[#FDDBB4]/60 hover:border-[#E87020]/40'
+                          ? 'bg-[#3B261B] text-white border-[#3B261B]'
+                          : 'bg-white text-[#374151] border-[#FDDBB4]/60 hover:border-[#3B261B]/40'
                       }`}
                     >
                       {mode}
@@ -1444,14 +1446,14 @@ export default function Pos(props: PosProps = {}) {
               <div>
                 <div className="border border-[#FDDBB4]/60 rounded-xl p-2.5 bg-white">
                   <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-0.5">
-                    {paymentType} — Amount Received (RM)
+                    {paymentType} — Amount Received (₹)
                   </label>
                   <input
                     type="number" onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     value={cashReceived}
                     onChange={e => setCashReceived(e.target.value)}
                     placeholder="0.00"
-                    className="w-full h-9 px-3 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-xl text-[13px] font-black text-[#111111] focus:outline-none focus:border-[#E87020]"
+                    className="w-full h-9 px-3 bg-[#FAFAFA] border border-[#FDDBB4]/40 rounded-xl text-[13px] font-black text-[#111111] focus:outline-none focus:border-[#3B261B]"
                   />
                   {cashReceivedNum > 0 && (
                     <div className="mt-2 flex justify-between items-center bg-[#F9FAFB] px-3 py-1.5 rounded-lg border border-[#FDDBB4]/40">

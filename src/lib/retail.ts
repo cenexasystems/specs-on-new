@@ -46,9 +46,9 @@ const DEFAULT_UNIT_LABEL: Record<UnitType, string> = {
   bundle: 'bundle',
 }
 
-const MYR_CURRENCY = new Intl.NumberFormat('en-MY', {
+const MYR_CURRENCY = new Intl.NumberFormat('en-IN', {
   style: 'currency',
-  currency: 'MYR',
+  currency: 'INR',
   currencyDisplay: 'symbol',
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,

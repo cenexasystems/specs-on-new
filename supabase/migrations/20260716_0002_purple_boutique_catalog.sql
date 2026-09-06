@@ -1,4 +1,4 @@
--- Purple Boutique initial catalog. Existing matching products are preserved.
+-- Specson initial catalog. Existing matching products are preserved.
 
 INSERT INTO public.categories (name_en, name_ta, is_active, sort_order)
 VALUES

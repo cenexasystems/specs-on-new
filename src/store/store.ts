@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { supabase } from '../lib/supabase'
-import { fetchAllCategories, fetchAllProducts } from '../services/productService'
+import { fetchAllCategories, fetchAllProducts, fetchLensAddons } from '../services/productService'
 import { fetchAllVariants, type ProductVariant } from '../services/variantService'
 import { BRAND_ADDRESS, BRAND_EN, BRAND_PHONE_DISPLAY } from '../lib/brand'
 import {
@@ -32,16 +32,20 @@ export interface Product {
   unitType: UnitType
   unitLabel: string
   baseQuantity: number
-  stockQuantity: number
-  stockUnit: string
   allowDecimalQuantity: boolean
+  stockQuantity?: number
+  stock?: number
+  stockUnit?: string
+  lowStockAlert?: number
+  openingStock?: number
+  isPriceEditable?: boolean
+  lensType?: string
   predefinedOptions: QuantityOption[]
   isActive: boolean
   sortOrder: number
   unit: string
   rating: number
-  stock: number
-  description: string
+    description: string
   descriptionTa?: string
   benefits: string
   benefitsTa?: string
@@ -59,14 +63,14 @@ export interface Product {
   purchasePrice?: number
   mrp?: number
   gstPercent?: number
-  openingStock?: number
-  lowStockAlert?: number
-  supplier?: string
+    supplier?: string
   size?: string
   color?: string
 }
 
 export interface CartItem extends Product {
+  isManual?: boolean
+  selectedAddons?: {id: number, name: string, price: number}[]
   qty: number
   selectedUnit: string
   basePrice: number
@@ -102,7 +106,23 @@ interface AuthState {
   initialize: () => Promise<void>
 }
 
+export interface Category {
+  id: number
+  name: string
+  nameTa?: string
+  isManualEntry: boolean
+  sortOrder: number
+}
+
+export interface LensAddon {
+  id: number
+  name: string
+  price: number
+}
+
 interface ProductState {
+  categories: Category[]
+  lensAddons: LensAddon[]
   products: Product[]
   loading: boolean
   error: string | null
@@ -233,16 +253,15 @@ const mapDbProduct = (input: unknown, categoriesById: Record<string, string> = {
     unitType: normalizeUnitType(p.unit_type, 'unit'),
     unitLabel: readString(p.unit_label, 'piece'),
     baseQuantity: toNumber(p.base_quantity, 1),
-    stockQuantity: toNumber(p.stock_quantity, 0),
-    stockUnit: readString(p.stock_unit, 'piece'),
-    allowDecimalQuantity: Boolean(p.allow_decimal_quantity),
+        allowDecimalQuantity: Boolean(p.allow_decimal_quantity),
+    isPriceEditable: Boolean(p.is_price_editable),
+    lensType: readString(p.lens_type),
     predefinedOptions: Array.isArray(p.predefined_options) ? p.predefined_options as QuantityOption[] : [],
     isActive: p.is_active !== false,
     sortOrder: toNumber(p.sort_order, 0),
     unit: readString(p.unit, '100g'),
     rating: toNumber(p.rating, 4.7),
-    stock: Math.floor(toNumber(p.stock_quantity ?? p.stock, 0)),
-    description: readString(p.description),
+        description: readString(p.description),
     descriptionTa: readString(p.description_ta),
     benefits: readString(p.benefits),
     benefitsTa: readString(p.benefits_ta),
@@ -258,9 +277,7 @@ const mapDbProduct = (input: unknown, categoriesById: Record<string, string> = {
     purchasePrice: toNumber(p.purchase_price, 0),
     mrp: toNumber(p.mrp, 0),
     gstPercent: toNumber(p.gst_percent, 0),
-    openingStock: toNumber(p.opening_stock, 0),
-    lowStockAlert: toNumber(p.low_stock_alert, 5),
-    supplier: readString(p.supplier),
+        supplier: readString(p.supplier),
     size: readString(p.size),
     color: readString(p.color),
   }
@@ -340,13 +357,15 @@ export const useAuthStore = create<AuthState>()(
         }
       }
     }),
-    { name: 'purple-boutique-auth' }
+    { name: 'specson-auth' }
   )
 )
 
 // --- Product Store ---
 export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
+  categories: [],
+  lensAddons: [],
   loading: false,
   error: null,
   lastFetch: 0,
@@ -377,7 +396,30 @@ export const useProductStore = create<ProductState>((set, get) => ({
       )
       const normalized = (data || []).map(product => mapDbProduct(product, categoriesById))
 
-      set({ products: normalized, loading: false, lastFetch: Date.now() })
+      
+      const { data: addonsData } = await fetchLensAddons();
+      
+      const parsedCategories = (categoryData || []).map((cat: any) => ({
+        id: cat.id,
+        name: cat.name_en || '',
+        nameTa: cat.name_ta || '',
+        isManualEntry: Boolean(cat.is_manual_entry),
+        sortOrder: cat.sort_order || 0
+      }));
+      
+      const parsedAddons = (addonsData || []).map((addon: any) => ({
+        id: addon.id,
+        name: addon.name || '',
+        price: Number(addon.price || 0)
+      }));
+
+      set({ 
+        products: normalized, 
+        categories: parsedCategories,
+        lensAddons: parsedAddons,
+        loading: false, 
+        lastFetch: Date.now() 
+      })
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Unable to fetch products',
@@ -464,7 +506,7 @@ export const useCartStore = create<CartState>()(
       count: () => get().totalItems(),
       total: () => get().cartSubtotal(),
     }),
-    { name: 'purple-boutique-cart' }
+    { name: 'specson-cart' }
   )
 )
 
@@ -483,7 +525,7 @@ export const useFavStore = create<FavState>()(
       isFav: (productId) => get().items.some((p) => p.id === productId),
       clear: () => set({ items: [] }),
     }),
-    { name: 'purple-boutique-favorites' },
+    { name: 'specson-favorites' },
   ),
 )
 
@@ -612,7 +654,7 @@ export const useAdminAuthStore = create<AdminAuthState>()(
       logout: () => set({ isLoggedIn: false, role: null }),
     }),
     {
-      name: 'purple-boutique-admin-session',
+      name: 'specson-admin-session',
       // Using sessionStorage so the session is cleared when the tab is closed
       storage: {
         getItem: (name) => {

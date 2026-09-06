@@ -12,7 +12,7 @@ const PRODUCT_COLUMNS = [
   'description', 'description_ta', 'benefits', 'benefits_ta',
   'image', 'image_url', 'sku', 'barcode', 'brand',
   'purchase_price', 'mrp', 'gst_percent', 'opening_stock', 'stock',
-  'has_variants', 'item_type'
+  'has_variants', 'item_type', 'is_price_editable', 'lens_type'
 ].join(', ')
 
 export function fetchAllCategories() {
@@ -26,4 +26,8 @@ export function fetchAllProducts() {
     .from('products')
     .select(PRODUCT_COLUMNS)
     .order('sort_order', { ascending: true })
+}
+
+export function fetchLensAddons() {
+  return supabase.from('lens_addons').select('*').order('name')
 }

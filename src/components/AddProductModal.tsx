@@ -18,9 +18,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
   const [formData, setFormData] = useState({
     name: '',
     category: '',
-    price: '',
-    stock: '10'
-  })
+    price: '' })
 
   const existingCategories = categoryOptions.length > 0
     ? categoryOptions
@@ -75,7 +73,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         category: categoryName || 'Uncategorized',
         category_id: categoryId,
         price: Number(formData.price),
-        stock: Number(formData.stock),
+        
         is_active: true,
         unit: '1pc',
         base_quantity: 1,
@@ -113,7 +111,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
               type="text"
               value={formData.name}
               onChange={e => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[13px] font-bold"
+              className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold"
               placeholder="E.g. Premium Shawl"
             />
           </div>
@@ -126,7 +124,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                   <select
                     value={formData.category}
                     onChange={e => setFormData({...formData, category: e.target.value})}
-                    className="flex-1 w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[13px] font-bold appearance-none"
+                    className="flex-1 w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold appearance-none"
                   >
                     <option value="">Select category</option>
                     {existingCategories.map(cat => (
@@ -136,7 +134,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                   <button
                     type="button"
                     onClick={() => { setCategoryMode('new'); setFormData(f => ({...f, category: ''})) }}
-                    className="px-2 py-3 text-[10px] font-black text-[#E87020] bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl hover:bg-[#FDDBB4]/40 transition-colors shrink-0"
+                    className="px-2 py-3 text-[10px] font-black text-[#3B261B] bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl hover:bg-[#FDDBB4]/40 transition-colors shrink-0"
                     title="Add new category"
                   >+</button>
                 </div>
@@ -146,7 +144,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                     type="text"
                     value={formData.category}
                     onChange={e => setFormData({...formData, category: e.target.value})}
-                    className="flex-1 w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[13px] font-bold"
+                    className="flex-1 w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold"
                     placeholder="Type new category"
                   />
                   <button
@@ -159,12 +157,12 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
               )}
             </div>
             <div>
-              <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Price (RM )</label>
+              <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Price (₹ )</label>
               <input
                 type="number"
                 value={formData.price}
                 onChange={e => setFormData({...formData, price: e.target.value})}
-                className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#E87020] text-[13px] font-bold text-right"
+                className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold text-right"
                 placeholder="0"
               />
             </div>
@@ -173,7 +171,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full py-3.5 bg-[#E87020] hover:bg-[#065F46] text-white rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors disabled:opacity-50"
+            className="mt-4 w-full py-3.5 bg-[#3B261B] hover:bg-[#1A1410] text-white rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors disabled:opacity-50"
           >
             {loading ? 'Adding...' : 'Save Product'}
           </button>

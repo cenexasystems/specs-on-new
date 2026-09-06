@@ -14,21 +14,19 @@ function variantToProduct(base: Product, v: ProductVariant): Product {
     name: `${base.name}${v.sizeLabel || v.variantName !== base.name ? ` - ${v.variantName}` : ''}`,
     price: v.price,
     offerPrice: null,
-    stock: v.stock,
-    stockQuantity: v.stock,
+    
+    
     hasVariants: false,
     // Treat variant as independent SKU: single unit with exact price
     baseQuantity: 1,
     unitType: 'unit',
-    unitLabel: v.sizeLabel || base.unitLabel || 'piece',
-  }
+    unitLabel: v.sizeLabel || base.unitLabel || 'piece' }
 }
 
 export default function VariantSelectormodal({
   product,
   open,
-  onClose,
-}: {
+  onClose }: {
   product: Product | null
   open: boolean
   onClose: () => void
@@ -195,7 +193,7 @@ export default function VariantSelectormodal({
                           ? 'bg-[#111111]/6 ring-2 ring-[#111111]'
                           : outOfStock
                           ? 'cursor-not-allowed opacity-45 ring-1 ring-gray-200'
-                          : 'ring-1 ring-gray-200 hover:ring-[#E87020] active:bg-gray-50',
+                          : 'ring-1 ring-gray-200 hover:ring-[#3B261B] active:bg-gray-50',
                       ].join(' ')}
                     >
                       {/* Radio circle */}

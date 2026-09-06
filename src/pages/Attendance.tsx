@@ -23,7 +23,7 @@ interface AttendanceRecord {
 
 function formatTime(ts: string | null) {
   if (!ts) return '—'
-  return new Date(ts).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true })
+  return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
 export default function Attendance() {
@@ -138,7 +138,7 @@ export default function Attendance() {
   return (
     <div className="p-4 sm:p-6 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl font-black text-[#111111] flex items-center gap-2"><Users size={24} className="text-[#E87020]" /> Attendance & Staff</h1>
+        <h1 className="text-2xl font-black text-[#111111] flex items-center gap-2"><Users size={24} className="text-[#3B261B]" /> Attendance & Staff</h1>
       </div>
 
       {dbError && (
@@ -154,7 +154,7 @@ export default function Attendance() {
       <div className="flex gap-2 flex-wrap">
         {(['today', 'report', 'staff'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-colors ${tab === t ? 'bg-[#E87020] text-white' : 'bg-white border border-[#FDDBB4]/60 text-[#374151] hover:bg-orange-50'}`}>
+            className={`shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-colors ${tab === t ? 'bg-[#3B261B] text-white' : 'bg-white border border-[#D8D0C5]/60 text-[#374151] hover:bg-warm-beige/30'}`}>
             {t === 'today' ? "Today's Attendance" : t === 'report' ? 'Monthly Report' : 'Staff Management'}
           </button>
         ))}
@@ -163,9 +163,9 @@ export default function Attendance() {
       {/* TODAY TAB */}
       {tab === 'today' && (
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#FDDBB4]/60 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#D8D0C5]/60 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="bg-orange-100 p-2.5 rounded-xl text-orange-600"><Calendar size={20} /></div>
+              <div className="bg-warm-beige/40 p-2.5 rounded-xl text-choc-brown"><Calendar size={20} /></div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280]">Select Date</p>
                 <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="font-black text-[#111111] bg-transparent outline-none" />
@@ -175,14 +175,14 @@ export default function Attendance() {
               <div className="text-center"><p className="text-[10px] font-black uppercase text-[#6B7280]">Total</p><p className="text-xl font-black">{activeStaff.length}</p></div>
               <div className="text-center"><p className="text-[10px] font-black uppercase text-[#6B7280]">Present</p><p className="text-xl font-black text-green-600">{presentCount}</p></div>
               <div className="text-center"><p className="text-[10px] font-black uppercase text-[#6B7280]">Absent</p><p className="text-xl font-black text-red-600">{absentCount}</p></div>
-              <div className="text-center"><p className="text-[10px] font-black uppercase text-[#6B7280]">Leave/Half</p><p className="text-xl font-black text-orange-600">{leaveCount}</p></div>
+              <div className="text-center"><p className="text-[10px] font-black uppercase text-[#6B7280]">Leave/Half</p><p className="text-xl font-black text-choc-brown">{leaveCount}</p></div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+                <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                   <tr>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Staff Member</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Role</th>
@@ -200,10 +200,10 @@ export default function Attendance() {
                     const clk = clockMap[member.id]
                     const status = attendanceMap[member.id]
                     return (
-                      <tr key={member.id} className="border-b border-[#FDDBB4]/30 hover:bg-[#FAFAFA]">
+                      <tr key={member.id} className="border-b border-[#D8D0C5]/30 hover:bg-[#FAFAFA]">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#FFF8F2] text-[#E87020] border border-[#FDDBB4] flex items-center justify-center font-black text-sm shrink-0 uppercase">{member.name.charAt(0)}</div>
+                            <div className="w-8 h-8 rounded-full bg-[#F5F3EF] text-[#3B261B] border border-[#D8D0C5] flex items-center justify-center font-black text-sm shrink-0 uppercase">{member.name.charAt(0)}</div>
                             <span className="font-bold text-[#111111] text-sm">{member.name}</span>
                           </div>
                         </td>
@@ -230,7 +230,7 @@ export default function Attendance() {
                               if (isSelected) {
                                 if (s === 'present') colorClass = 'bg-green-100 text-green-700 border-green-200 shadow-sm'
                                 else if (s === 'absent') colorClass = 'bg-red-100 text-red-700 border-red-200 shadow-sm'
-                                else colorClass = 'bg-orange-100 text-orange-700 border-orange-200 shadow-sm'
+                                else colorClass = 'bg-warm-beige/40 text-choc-brown border-warm-beige/60 shadow-sm'
                               }
                               return (
                                 <button key={s} onClick={() => void markAttendance(member.id, s)} disabled={dbError}
@@ -256,14 +256,14 @@ export default function Attendance() {
         <div className="space-y-5">
           <div className="flex justify-end">
             <button onClick={() => { setEditingStaff(null); setForm({ name: '', role: '', phone: '', base_salary: '' }); setShowModal(true) }} disabled={dbError}
-              className="bg-[#E87020] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#C85C10] disabled:opacity-50">
+              className="bg-[#3B261B] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#1A1410] disabled:opacity-50">
               <Plus size={16} /> Add Staff
             </button>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+                <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                   <tr>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Name</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Role</th>
@@ -277,7 +277,7 @@ export default function Attendance() {
                   {staff.length === 0 ? (
                     <tr><td colSpan={6} className="text-center p-8 text-[#6B7280] font-bold">No staff added yet.</td></tr>
                   ) : staff.map(member => (
-                    <tr key={member.id} className="border-b border-[#FDDBB4]/30 hover:bg-[#FAFAFA]">
+                    <tr key={member.id} className="border-b border-[#D8D0C5]/30 hover:bg-[#FAFAFA]">
                       <td className="px-4 py-3 font-bold text-[#111111] text-sm">{member.name}</td>
                       <td className="px-4 py-3 text-sm text-[#374151]">{member.role}</td>
                       <td className="px-4 py-3 text-sm text-[#374151]">{member.phone || '—'}</td>
@@ -290,7 +290,7 @@ export default function Attendance() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => { setEditingStaff(member); setForm({ name: member.name, role: member.role, phone: member.phone || '', base_salary: String(member.base_salary) }); setShowModal(true) }}
-                          className="text-[#374151] hover:text-[#E87020] p-1.5 bg-gray-50 hover:bg-[#FFF8F2] rounded-lg border border-transparent hover:border-[#FDDBB4] transition-colors">
+                          className="text-[#374151] hover:text-[#3B261B] p-1.5 bg-gray-50 hover:bg-[#F5F3EF] rounded-lg border border-transparent hover:border-[#D8D0C5] transition-colors">
                           <Edit2 size={14} />
                         </button>
                       </td>
@@ -306,7 +306,7 @@ export default function Attendance() {
       {/* MONTHLY REPORT TAB */}
       {tab === 'report' && (
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#FDDBB4]/60 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#D8D0C5]/60 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="bg-purple-100 p-2.5 rounded-xl text-purple-600"><Calendar size={20} /></div>
               <div>
@@ -315,15 +315,15 @@ export default function Attendance() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+                <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                   <tr>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Staff Member</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Role</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-green-600 text-center">Present</th>
-                    <th className="px-4 py-3 text-[11px] font-black uppercase text-orange-500 text-center">Half Day</th>
+                    <th className="px-4 py-3 text-[11px] font-black uppercase text-choc-brown text-center">Half Day</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-red-600 text-center">Absent</th>
                     <th className="px-4 py-3 text-[11px] font-black uppercase text-blue-600 text-center">Leave</th>
                   </tr>
@@ -336,16 +336,16 @@ export default function Attendance() {
                   ) : activeStaff.map(member => {
                     const stats = reportData[member.id] || { present: 0, half: 0, absent: 0, leave: 0 }
                     return (
-                      <tr key={member.id} className="border-b border-[#FDDBB4]/30 hover:bg-[#FAFAFA]">
+                      <tr key={member.id} className="border-b border-[#D8D0C5]/30 hover:bg-[#FAFAFA]">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#FFF8F2] text-[#E87020] border border-[#FDDBB4] flex items-center justify-center font-black text-sm shrink-0 uppercase">{member.name.charAt(0)}</div>
+                            <div className="w-8 h-8 rounded-full bg-[#F5F3EF] text-[#3B261B] border border-[#D8D0C5] flex items-center justify-center font-black text-sm shrink-0 uppercase">{member.name.charAt(0)}</div>
                             <span className="font-bold text-[#111111] text-sm">{member.name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-[#374151]">{member.role}</td>
                         <td className="px-4 py-3 text-center font-bold text-green-700">{stats.present}</td>
-                        <td className="px-4 py-3 text-center font-bold text-orange-600">{stats.half}</td>
+                        <td className="px-4 py-3 text-center font-bold text-choc-brown">{stats.half}</td>
                         <td className="px-4 py-3 text-center font-bold text-red-700">{stats.absent}</td>
                         <td className="px-4 py-3 text-center font-bold text-blue-700">{stats.leave}</td>
                       </tr>
@@ -368,23 +368,23 @@ export default function Attendance() {
             <form onSubmit={handleSaveStaff} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Full Name *</label>
-                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required />
+                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" required />
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Role / Job Title *</label>
-                <input type="text" value={form.role} onChange={e => setForm({...form, role: e.target.value})} placeholder="e.g. Tailor, Manager" className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required />
+                <input type="text" value={form.role} onChange={e => setForm({...form, role: e.target.value})} placeholder="e.g. Tailor, Manager" className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" required />
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Phone Number</label>
-                <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="+60" className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" />
+                <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="+91" className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Base Salary (RM)</label>
-                <input type="number" step="0.01" min="0" value={form.base_salary} onChange={e => setForm({...form, base_salary: e.target.value})} className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" placeholder="0.00" />
+                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Base Salary (₹)</label>
+                <input type="number" step="0.01" min="0" value={form.base_salary} onChange={e => setForm({...form, base_salary: e.target.value})} className="w-full border border-[#D8D0C5]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#3B261B]" placeholder="0.00" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-100 p-3 rounded-xl font-bold text-sm hover:bg-gray-200">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 bg-[#E87020] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#C85C10] disabled:opacity-50">{submitting ? 'Saving...' : 'Save Staff'}</button>
+                <button type="submit" disabled={submitting} className="flex-1 bg-[#3B261B] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#1A1410] disabled:opacity-50">{submitting ? 'Saving...' : 'Save Staff'}</button>
               </div>
             </form>
           </div>

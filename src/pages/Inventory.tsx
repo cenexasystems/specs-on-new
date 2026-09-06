@@ -1,617 +1,243 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Package, Search, AlertTriangle, X, RefreshCw, Edit2, Plus, Trash2, ChevronDown, Download, TrendingUp, PieChart } from 'lucide-react'
+import { Package, Search, Edit2, Plus, Trash2, Tag, Activity } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency } from '../lib/retail'
 import { useSound } from '../context/SoundContext'
 
-interface InventoryProduct {
+interface CatalogProduct {
   id: string | number
   name: string
   category: string
-  stock_quantity: number
-  low_stock_alert: number
   price: number
-  purchase_price?: number
+  is_price_editable: boolean
+  lens_type?: string
   is_active: boolean
-  updated_at: string
-  image_url?: string
 }
 
 interface Category {
   id: string | number
   name_en: string
-  name_ta?: string
-  is_active: boolean
-  sort_order?: number
+  is_manual_entry: boolean
 }
 
-interface AdjustModal {
-  product: InventoryProduct
-  newQty: string
-  adjustType: 'restock' | 'correction' | 'loss' | 'return'
-  note: string
+interface LensAddon {
+  id: string | number
+  name: string
+  price: number
 }
 
 interface ProductForm {
   name: string
   category: string
   price: string
-  purchase_price: string
-  stock_quantity: string
-  low_stock_alert: string
+  is_price_editable: boolean
+  lens_type: string
   is_active: boolean
-  item_type: 'product' | 'service'
 }
 
 const EMPTY_FORM: ProductForm = {
   name: '',
   category: '',
   price: '',
-  purchase_price: '',
-  stock_quantity: '0',
-  low_stock_alert: '5',
+  is_price_editable: false,
+  lens_type: '',
   is_active: true,
-  item_type: 'product',
 }
 
-const getStatus = (p: InventoryProduct) => {
-  if (p.stock_quantity <= 0) return 'out'
-  if (p.stock_quantity <= (p.low_stock_alert || 5)) return 'low'
-  return 'ok'
-}
-
-interface InventoryLog {
-  id: string
-  product_id: string | number
-  old_quantity: number
-  new_quantity: number
-  adjustment: number
-  reason: string
-  reference_id?: string
-  created_at: string
-  products?: { name: string; category: string }
-}
-
-type DatePreset = 'all' | 'today' | 'week' | 'month' | 'custom'
-
-function InventoryAnalytics({ products, downloadCSV }: { products: InventoryProduct[]; downloadCSV: () => void }) {
-  const [datePreset, setDatePreset] = useState<DatePreset>('week')
-  const [fromDate, setFromDate] = useState(() => {
-    const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split('T')[0]
-  })
-  const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [logs, setLogs] = useState<InventoryLog[]>([])
-  const [loadingLogs, setLoadingLogs] = useState(false)
-
-  const applyPreset = (preset: DatePreset) => {
-    setDatePreset(preset)
-    const now = new Date()
-    const today = now.toISOString().split('T')[0]
-    if (preset === 'all') { setFromDate('2000-01-01'); setToDate(today) }
-    else if (preset === 'today') { setFromDate(today); setToDate(today) }
-    else if (preset === 'week') { const d = new Date(); d.setDate(d.getDate() - 7); setFromDate(d.toISOString().split('T')[0]); setToDate(today) }
-    else if (preset === 'month') { const d = new Date(); d.setDate(1); setFromDate(d.toISOString().split('T')[0]); setToDate(today) }
-  }
-
+// Analytics driven by order_items instead of inventory_logs
+function InventoryAnalytics() {
+  const [itemsSold, setItemsSold] = useState<any[]>([])
+  
   useEffect(() => {
-    const fetchLogs = async () => {
-      setLoadingLogs(true)
-      const from = new Date(fromDate + 'T00:00:00').toISOString()
-      const to = new Date(toDate + 'T23:59:59').toISOString()
-      const { data } = await supabase
-        .from('inventory_logs')
-        .select('*, products(name, category)')
-        .gte('created_at', from)
-        .lte('created_at', to)
-        .order('created_at', { ascending: false })
-      setLogs((data as InventoryLog[]) || [])
-      setLoadingLogs(false)
-    }
-    void fetchLogs()
-  }, [fromDate, toDate])
-
-  const totalRestocked = logs.filter(l => l.adjustment > 0).reduce((s, l) => s + l.adjustment, 0)
-  const totalLost = logs.filter(l => l.adjustment < 0 && l.reason !== 'sale').reduce((s, l) => s + Math.abs(l.adjustment), 0)
-  const totalSold = logs.filter(l => l.reason === 'sale').reduce((s, l) => s + Math.abs(l.adjustment), 0)
-
-  const REASON_COLORS: Record<string, string> = {
-    restock: 'bg-emerald-100 text-emerald-700',
-    sale: 'bg-blue-100 text-blue-700',
-    return: 'bg-purple-100 text-purple-700',
-    loss: 'bg-red-100 text-red-700',
-    manual_adjustment: 'bg-orange-100 text-orange-700',
-    correction: 'bg-yellow-100 text-yellow-700',
-  }
+    supabase.from('order_items').select('product_name, quantity, line_total, created_at')
+      .order('created_at', { ascending: false }).limit(100)
+      .then(({data}) => setItemsSold(data || []))
+  }, [])
 
   return (
-    <div className="space-y-5">
-      {/* Header + Export */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl shadow-sm border border-[#FDDBB4]/60 gap-4">
-        <div>
-          <h3 className="text-lg font-black text-[#111111]">Inventory Analytics & Reports</h3>
-          <p className="text-xs text-[#6B7280]">Track stock movements, restocks, losses and more — filtered by date.</p>
-        </div>
-        <button onClick={downloadCSV} className="flex items-center gap-2 bg-[#E87020] hover:bg-[#C85C10] text-white px-5 py-2.5 rounded-xl font-bold transition-transform active:scale-95 shadow-lg shadow-orange-600/20">
-          <Download size={16} /> Export CSV
-        </button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-black text-near-black">Recent Items Sold</h3>
       </div>
-
-      {/* Date Filter */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#FDDBB4]/60">
-        <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280] mb-3">Filter by Date</p>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {(['all', 'today', 'week', 'month', 'custom'] as DatePreset[]).map(p => (
-            <button key={p} onClick={() => applyPreset(p)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-colors ${datePreset === p ? 'bg-[#E87020] text-white' : 'bg-[#F5F5F5] text-[#374151] hover:bg-orange-50'}`}>
-              {p === 'all' ? 'All Time' : p === 'today' ? 'Today' : p === 'week' ? 'This Week' : p === 'month' ? 'This Month' : 'Custom'}
-            </button>
-          ))}
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-[#374151]">
+            <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#F3F4F6]">
+              <tr>
+                <th className="p-4 font-black">Item</th>
+                <th className="p-4 font-black">Qty</th>
+                <th className="p-4 font-black">Total</th>
+                <th className="p-4 font-black">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itemsSold.map((item, i) => (
+                <tr key={i} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                  <td className="p-4 font-bold text-near-black">{item.product_name}</td>
+                  <td className="p-4">{item.quantity}</td>
+                  <td className="p-4 font-bold text-near-black">{formatCurrency(item.line_total)}</td>
+                  <td className="p-4 text-xs text-gray-500">{new Date(item.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        {datePreset === 'custom' && (
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] font-black uppercase text-[#6B7280]">From</label>
-              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
-                className="border border-[#FDDBB4]/60 rounded-lg px-3 py-1.5 text-sm font-bold outline-none focus:border-[#E87020]" />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] font-black uppercase text-[#6B7280]">To</label>
-              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
-                className="border border-[#FDDBB4]/60 rounded-lg px-3 py-1.5 text-sm font-bold outline-none focus:border-[#E87020]" />
-            </div>
-          </div>
-        )}
-        {datePreset !== 'custom' && (
-          <p className="text-xs text-[#9CA3AF]">Showing: <span className="font-bold text-[#374151]">{fromDate}</span> → <span className="font-bold text-[#374151]">{toDate}</span></p>
-        )}
-      </div>
-
-      {/* Activity Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[
-          { label: 'Units Restocked', value: totalRestocked, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Units Sold', value: totalSold, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Units Lost/Damaged', value: totalLost, color: 'text-red-600', bg: 'bg-red-50' },
-        ].map(c => (
-          <div key={c.label} className={`${c.bg} rounded-2xl border border-[#FDDBB4]/60 p-4 shadow-sm`}>
-            <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280] mb-1">{c.label}</p>
-            <p className={`text-2xl font-black ${c.color}`}>{c.value}</p>
-            <p className="text-[10px] text-[#9CA3AF] mt-1">in selected period</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Static Analytics */}
-      <div className="grid md:grid-cols-2 gap-5">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#FDDBB4]/60">
-          <h4 className="font-black text-sm uppercase tracking-wider text-[#374151] mb-4 flex items-center gap-2">
-            <TrendingUp size={16} className="text-emerald-500" /> Highest Stock Value (Current)
-          </h4>
-          <div className="space-y-3">
-            {products.filter(p => p.stock_quantity > 0)
-              .sort((a, b) => (b.stock_quantity * b.price) - (a.stock_quantity * a.price))
-              .slice(0, 5).map((p, i) => (
-                <div key={p.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white font-black text-xs text-slate-400 shadow-sm">{i + 1}</span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-slate-800 truncate">{p.name}</p>
-                      <p className="text-[10px] text-slate-500 truncate">{p.stock_quantity} units • {formatCurrency(p.price)}/unit</p>
-                    </div>
-                  </div>
-                  <p className="font-black text-emerald-600 shrink-0 ml-2">{formatCurrency(p.stock_quantity * p.price)}</p>
-                </div>
-            ))}
-            {products.filter(p => p.stock_quantity > 0).length === 0 && <p className="text-sm text-slate-400 text-center py-4">No data.</p>}
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#FDDBB4]/60">
-          <h4 className="font-black text-sm uppercase tracking-wider text-[#374151] mb-4 flex items-center gap-2">
-            <PieChart size={16} className="text-purple-500" /> Stock by Category (Current)
-          </h4>
-          <div className="space-y-3">
-            {Object.entries(products.reduce((acc, p) => {
-              const cat = p.category || 'Uncategorised'
-              acc[cat] = (acc[cat] || 0) + p.stock_quantity
-              return acc
-            }, {} as Record<string, number>)).sort((a, b) => b[1] - a[1]).map(([cat, qty], i) => (
-              <div key={cat} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className={`shrink-0 w-3 h-3 rounded-full ${['bg-orange-500','bg-emerald-500','bg-blue-500','bg-purple-500','bg-pink-500'][i%5]}`} />
-                  <p className="font-bold text-sm text-slate-800">{cat}</p>
-                </div>
-                <p className="font-black text-slate-600 shrink-0"><span className="text-purple-600">{qty}</span> items</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Activity Log Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#FDDBB4]/60 flex items-center justify-between">
-          <h4 className="font-black text-sm uppercase tracking-wider text-[#374151]">Stock Movement Log</h4>
-          <span className="text-xs font-bold text-[#6B7280]">{logs.length} entries</span>
-        </div>
-        {loadingLogs ? (
-          <p className="text-center py-10 text-sm font-bold text-[#6B7280]">Loading...</p>
-        ) : logs.length === 0 ? (
-          <p className="text-center py-10 text-sm font-bold text-[#9CA3AF]">No stock movements in this date range.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-[#F8F7F4] text-[10px] font-black uppercase tracking-wider text-[#737B72]">
-                <tr>{['Date', 'Product', 'Category', 'Reason', 'Old Qty', 'New Qty', 'Change'].map(h => <th key={h} className="px-4 py-3 text-left">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0EEE9]">
-                {logs.map(log => (
-                  <tr key={log.id} className="hover:bg-orange-50/30">
-                    <td className="px-4 py-3 text-[11px] text-[#6B7280] whitespace-nowrap">{new Date(log.created_at).toLocaleDateString('en-MY')}<br/><span className="text-[10px] opacity-70">{new Date(log.created_at).toLocaleTimeString('en-MY',{hour:'2-digit',minute:'2-digit'})}</span></td>
-                    <td className="px-4 py-3 font-bold text-[#111111] max-w-[140px] truncate">{(log.products as any)?.name || '—'}</td>
-                    <td className="px-4 py-3 text-[#6B7280] text-xs">{(log.products as any)?.category || '—'}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${REASON_COLORS[log.reason] || 'bg-gray-100 text-gray-600'}`}>{log.reason.replace('_',' ')}</span></td>
-                    <td className="px-4 py-3 font-bold text-[#374151]">{log.old_quantity}</td>
-                    <td className="px-4 py-3 font-bold text-[#374151]">{log.new_quantity}</td>
-                    <td className={`px-4 py-3 font-black ${log.adjustment > 0 ? 'text-emerald-600' : 'text-red-600'}`}>{log.adjustment > 0 ? '+' : ''}{log.adjustment}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   )
 }
 
 export default function Inventory() {
-  const { play } = useSound()
-  const [activeTab, setActiveTab] = useState<'stock' | 'products' | 'categories' | 'analytics'>('stock')
-
-  // Stock state
-  const [products, setProducts] = useState<InventoryProduct[]>([])
+  const [activeTab, setActiveTab] = useState<'catalog' | 'products' | 'categories' | 'analytics' | 'addons'>('catalog')
+  const [products, setProducts] = useState<CatalogProduct[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [addons, setAddons] = useState<LensAddon[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all')
-  const [adjustModal, setAdjustModal] = useState<AdjustModal | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [notice, setNotice] = useState('')
+  
 
-  // Product form state
-  const [productForm, setProductForm] = useState<ProductForm>(EMPTY_FORM)
-  const [editingProduct, setEditingProduct] = useState<InventoryProduct | null>(null)
-  const [savingProduct, setSavingProduct] = useState(false)
-  const [productNotice, setProductNotice] = useState('')
+  // Form states
+  const [editingProduct, setEditingProduct] = useState<CatalogProduct | null>(null)
+  const [form, setForm] = useState<ProductForm>(EMPTY_FORM)
 
-  // Category state
-  const [categories, setCategories] = useState<Category[]>([])
-  const [newCatName, setNewCatName] = useState('')
-  const [editingCat, setEditingCat] = useState<Category | null>(null)
-  const [editingCatName, setEditingCatName] = useState('')
-  const [savingCat, setSavingCat] = useState(false)
-  const [catNotice, setCatNotice] = useState('')
-
-  const downloadCSV = () => {
-    const headers = ['ID', 'Product Name', 'Category', 'Stock Quantity', 'Low Stock Alert', 'Price (RM)', 'Purchase Price (RM)', 'Status', 'Last Updated']
-    const rows = products.map(p => {
-      const status = p.stock_quantity <= 0 ? 'Out of Stock' : p.stock_quantity <= p.low_stock_alert ? 'Low Stock' : 'In Stock'
-      return [
-        p.id,
-        `"${p.name.replace(/"/g, '""')}"`,
-        `"${(p.category || '').replace(/"/g, '""')}"`,
-        p.stock_quantity,
-        p.low_stock_alert,
-        p.price,
-        p.purchase_price || 0,
-        status,
-        new Date(p.updated_at).toLocaleString('en-MY')
-      ].join(',')
-    })
-    
-    const csvContent = [headers.join(','), ...rows].join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.setAttribute('download', `inventory_report_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  const fetchProducts = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('products')
-      .select('id, name, category, stock_quantity, low_stock_alert, price, purchase_price, is_active, updated_at, image_url, item_type')
-      .order('name')
-    if (!error && data) setProducts(data as InventoryProduct[])
+    const [pRes, cRes, aRes] = await Promise.all([
+      supabase.from('products').select('id, name, category, price, is_price_editable, lens_type, is_active').order('name'),
+      supabase.from('categories').select('id, name_en, is_manual_entry').order('sort_order'),
+      supabase.from('lens_addons').select('id, name, price').order('name')
+    ])
+    if (pRes.data) setProducts(pRes.data)
+    if (cRes.data) setCategories(cRes.data)
+    if (aRes.data) setAddons(aRes.data)
     setLoading(false)
   }, [])
 
-  const fetchCategories = useCallback(async () => {
-    const { data } = await supabase.from('categories').select('*').order('sort_order').order('name_en')
-    if (data) setCategories(data as Category[])
-  }, [])
-
-  useEffect(() => {
-    void fetchProducts()
-    void fetchCategories()
-  }, [fetchProducts, fetchCategories])
-
-  // ── Stock Management ──────────────────────────────────────────────
-  const filtered = products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase())
-    const status = getStatus(p)
-    if (filter === 'low') return matchSearch && status === 'low'
-    if (filter === 'out') return matchSearch && status === 'out'
-    return matchSearch
-  })
-
-  const lowCount = products.filter(p => getStatus(p) === 'low').length
-  const outCount = products.filter(p => getStatus(p) === 'out').length
-  const stockValue = products.reduce((s, p) => s + (p.stock_quantity * p.price), 0)
-
-  const openAdjust = (product: InventoryProduct) => {
-    const status = getStatus(product)
-    if (status === 'low' || status === 'out') play('alert')
-    setAdjustModal({ product, newQty: String(product.stock_quantity), adjustType: 'restock', note: '' })
-  }
-
-  const saveAdjust = async () => {
-    if (!adjustModal) return
-    const { product, newQty, adjustType, note } = adjustModal
-    const newQtyNum = parseFloat(newQty)
-    if (isNaN(newQtyNum) || newQtyNum < 0) { setNotice('Please enter a valid quantity.'); return }
-    setSaving(true)
-    try {
-      const { error: updateErr } = await supabase
-        .from('products')
-        .update({ stock_quantity: newQtyNum, updated_at: new Date().toISOString() })
-        .eq('id', product.id)
-      if (updateErr) throw updateErr
-
-      await supabase.from('inventory_logs').insert({
-        product_id: product.id,
-        old_quantity: product.stock_quantity,
-        new_quantity: newQtyNum,
-        adjustment: newQtyNum - product.stock_quantity,
-        reason: adjustType === 'restock' ? 'restock' : adjustType === 'loss' ? 'loss' : adjustType === 'return' ? 'return' : 'manual_adjustment',
-        reference_id: note || null,
-      }).then(() => {})
-
-      play('success')
-      setAdjustModal(null)
-      void fetchProducts()
-    } catch (err: unknown) {
-      setNotice(err instanceof Error ? err.message : 'Failed to update stock')
-      play('error')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  // ── Product Management ──────────────────────────────────────────────
-  const startEditProduct = (p: InventoryProduct) => {
-    setEditingProduct(p)
-    setProductForm({
-      name: p.name,
-      category: p.category || '',
-      price: String(p.price),
-      purchase_price: String(p.purchase_price || ''),
-      stock_quantity: String(p.stock_quantity),
-      low_stock_alert: String(p.low_stock_alert || 5),
-      is_active: p.is_active,
-      item_type: ((p as any).item_type === 'service' ? 'service' : 'product') as 'product' | 'service',
-    })
-    setProductNotice('')
-    setActiveTab('products')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const resetProductForm = () => {
-    setEditingProduct(null)
-    setProductForm(EMPTY_FORM)
-    setProductNotice('')
-  }
+  useEffect(() => { fetchData() }, [fetchData])
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!productForm.name.trim() || !productForm.price) {
-      setProductNotice('Product name and price are required.')
+    const cat = categories.find(c => c.name_en === form.category)
+    if (cat?.is_manual_entry) {
+      alert("Cannot add catalog items to a manual-entry category.")
       return
     }
-    setSavingProduct(true)
-    setProductNotice('')
-    try {
-      const payload = {
-        name: productForm.name.trim(),
-        category: productForm.category.trim() || null,
-        price: parseFloat(productForm.price) || 0,
-        purchase_price: productForm.purchase_price ? parseFloat(productForm.purchase_price) : 0,
-        stock_quantity: parseFloat(productForm.stock_quantity) || 0,
-        low_stock_alert: parseInt(productForm.low_stock_alert) || 5,
-        is_active: productForm.is_active,
-        item_type: productForm.item_type,
-        updated_at: new Date().toISOString(),
-      }
-      if (editingProduct) {
-        const { error } = await supabase.from('products').update(payload).eq('id', editingProduct.id)
-        if (error) throw error
-        setProductNotice('Product updated successfully!')
-      } else {
-        const { error } = await supabase.from('products').insert(payload)
-        if (error) throw error
-        setProductNotice('Product added successfully!')
-        setProductForm(EMPTY_FORM)
-      }
-      play('success')
-      void fetchProducts()
-    } catch (err: any) {
-      console.error('Save product error:', err)
-      setProductNotice(`Failed to save: ${err.message || JSON.stringify(err)}`)
-      play('error')
-    } finally {
-      setSavingProduct(false)
+
+    const payload = {
+      name: form.name,
+      category: form.category,
+      category_id: cat?.id || null,
+      price: parseFloat(form.price) || 0,
+      is_price_editable: form.is_price_editable,
+      lens_type: form.lens_type || null,
+      is_active: form.is_active,
+    }
+
+    if (editingProduct) {
+      const { error } = await supabase.from('products').update(payload).eq('id', editingProduct.id)
+      if (error) alert("An error occurred")
+      else { ; setEditingProduct(null); setForm(EMPTY_FORM); fetchData() }
+    } else {
+      const { error } = await supabase.from('products').insert([payload])
+      if (error) alert("An error occurred")
+      else { ; setForm(EMPTY_FORM); fetchData() }
     }
   }
 
-  const handleDeleteProduct = async (p: InventoryProduct) => {
-    if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return
-    await supabase.from('products').delete().eq('id', p.id)
-    void fetchProducts()
-    if (editingProduct?.id === p.id) resetProductForm()
+  const handleDelete = async (id: string | number) => {
+    if (!window.confirm('Delete this product?')) return
+    const { error } = await supabase.from('products').delete().eq('id', id)
+    if (error) alert("An error occurred")
+    else { ; fetchData() }
   }
 
-  // ── Category Management ──────────────────────────────────────────────
-  const handleAddCategory = async (e: React.FormEvent) => {
+  const handleAddonSave = async (e: React.FormEvent, addonForm: any, isEdit: boolean, id?: string|number) => {
     e.preventDefault()
-    if (!newCatName.trim()) return
-    setSavingCat(true)
-    try {
-      const maxOrder = categories.reduce((m, c) => Math.max(m, c.sort_order || 0), 0)
-      await supabase.from('categories').insert({ name_en: newCatName.trim(), name_ta: '', is_active: true, sort_order: maxOrder + 1 })
-      setNewCatName('')
-      setCatNotice('Category added!')
-      void fetchCategories()
-      play('success')
-    } catch (err: unknown) {
-      setCatNotice(err instanceof Error ? err.message : 'Failed to add category')
-    } finally {
-      setSavingCat(false)
-      setTimeout(() => setCatNotice(''), 3000)
+    if (isEdit) {
+      await supabase.from('lens_addons').update({name: addonForm.name, price: parseFloat(addonForm.price)}).eq('id', id)
+    } else {
+      await supabase.from('lens_addons').insert([{name: addonForm.name, price: parseFloat(addonForm.price)}])
     }
+    fetchData()
   }
 
-  const handleSaveEditCat = async (cat: Category) => {
-    if (!editingCatName.trim()) return
-    await supabase.from('categories').update({ name_en: editingCatName.trim() }).eq('id', cat.id)
-    setEditingCat(null)
-    void fetchCategories()
-  }
-
-  const handleDeleteCat = async (cat: Category) => {
-    if (!confirm(`Delete category "${cat.name_en}"?`)) return
-    await supabase.from('categories').delete().eq('id', cat.id)
-    void fetchCategories()
-  }
-
-  const handleToggleCat = async (cat: Category) => {
-    await supabase.from('categories').update({ is_active: !cat.is_active }).eq('id', cat.id)
-    void fetchCategories()
-  }
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div className="p-4 sm:p-6 space-y-5">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-black text-[#111111] flex items-center gap-2">
-          <Package size={24} className="text-[#E87020]" /> Inventory & Products
-        </h1>
-        <button onClick={() => { void fetchProducts(); void fetchCategories() }} className="flex items-center gap-2 bg-white border border-[#FDDBB4]/60 px-4 py-2 rounded-xl text-sm font-bold text-[#374151] hover:bg-orange-50">
-          <RefreshCw size={15} /> Refresh
-        </button>
+    <div className="space-y-6 min-h-screen pb-16">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-near-black">Catalog & Inventory</h1>
+          <p className="text-sm font-semibold text-gray-500 mt-1">Manage pricing tiers and manual categories</p>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-[#FDDBB4]/60 pb-2 overflow-x-auto">
-        {([['stock', 'Stock Management'], ['products', 'Add / Edit Products'], ['categories', 'Categories'], ['analytics', 'Analytics & Reports']] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setActiveTab(key)}
-            className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors whitespace-nowrap ${activeTab === key ? 'bg-[#E87020] text-white' : 'bg-white border border-[#FDDBB4]/60 text-[#374151] hover:bg-orange-50'}`}>
-            {label}
-          </button>
-        ))}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {[
+          { id: 'catalog', label: 'Catalog Overview', icon: Package },
+          { id: 'products', label: 'Add / Edit Products', icon: Edit2 },
+          { id: 'addons', label: 'Lens Add-ons', icon: Plus },
+          { id: 'categories', label: 'Categories', icon: Tag },
+          { id: 'analytics', label: 'Analytics', icon: Activity },
+        ].map(t => {
+          const Icon = t.icon
+          return (
+            <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === t.id ? 'bg-choc-brown text-white shadow-md' : 'bg-white text-gray-600 hover:bg-warm-beige/30 hover:text-choc-brown'}`}>
+              <Icon size={16} /> {t.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* ── STOCK MANAGEMENT TAB ── */}
-      {activeTab === 'stock' && (
-        <div className="space-y-5">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Total Products', value: products.length, color: 'text-[#111111]', bg: 'bg-white' },
-              { label: 'Low Stock', value: lowCount, color: 'text-orange-600', bg: 'bg-orange-50' },
-              { label: 'Out of Stock', value: outCount, color: 'text-red-600', bg: 'bg-red-50' },
-              { label: 'Stock Value', value: formatCurrency(stockValue), color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            ].map((card, i) => (
-              <div key={i} className={`rounded-2xl border border-[#FDDBB4]/60 p-4 shadow-sm ${card.bg}`}>
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#6B7280] mb-1">{card.label}</p>
-                <p className={`text-2xl font-black ${card.color}`}>{card.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..."
-                className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#FDDBB4]/60 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" />
+      {activeTab === 'catalog' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Catalog Items</p>
+              <p className="mt-2 text-3xl font-black text-near-black">{products.length}</p>
             </div>
-            <div className="flex gap-2">
-              {(['all', 'low', 'out'] as const).map(f => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`px-4 py-2 rounded-xl text-sm font-black uppercase tracking-wider ${filter === f ? 'bg-[#E87020] text-white' : 'bg-white border border-[#FDDBB4]/60 text-[#374151] hover:bg-orange-50'}`}>
-                  {f === 'all' ? 'All' : f === 'low' ? 'Low' : 'Out'}
-                </button>
-              ))}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Categories</p>
+              <p className="mt-2 text-3xl font-black text-near-black">{categories.length}</p>
+            </div>
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Manual-Entry Types</p>
+              <p className="mt-2 text-3xl font-black text-near-black">{categories.filter(c => c.is_manual_entry).length}</p>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl border border-[#FDDBB4]/60 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
+            <div className="p-4 border-b border-warm-beige/30 flex items-center gap-4">
+              <Search className="text-gray-400" size={20} />
+              <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
+            </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
+              <table className="w-full text-left text-sm text-[#374151]">
+                <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                   <tr>
-                    {['Product', 'Category', 'Stock', 'Alert At', 'Status', 'Price', 'Actions'].map(h => (
-                      <th key={h} className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-[#374151] whitespace-nowrap">{h}</th>
-                    ))}
+                    <th className="p-4 font-black">Product</th>
+                    <th className="p-4 font-black">Category</th>
+                    <th className="p-4 font-black">Type / Tier</th>
+                    <th className="p-4 font-black">Price</th>
+                    <th className="p-4 font-black text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
-                    <tr><td colSpan={7} className="text-center py-12 text-[#6B7280] font-bold">Loading inventory...</td></tr>
-                  ) : filtered.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-12 text-[#6B7280] font-bold">No products found.</td></tr>
-                  ) : filtered.map(p => {
-                    const status = getStatus(p)
-                    return (
-                      <tr key={String(p.id)} className="border-b border-[#FDDBB4]/20 hover:bg-[#FAFAFA]">
-                        <td className="px-4 py-3 font-bold text-[#111111] text-sm">{p.name}</td>
-                        <td className="px-4 py-3 text-sm text-[#374151]">{p.category || '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-sm font-black ${status === 'out' ? 'text-red-600' : status === 'low' ? 'text-orange-600' : 'text-[#111111]'}`}>
-                            {p.stock_quantity}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[#374151] font-semibold">{p.low_stock_alert || 5}</td>
-                        <td className="px-4 py-3">
-                          {status === 'out' ? (
-                            <span className="whitespace-nowrap bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">Out of Stock</span>
-                          ) : status === 'low' ? (
-                            <span className="whitespace-nowrap bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 w-fit">
-                              <AlertTriangle size={10} /> Low Stock
-                            </span>
-                          ) : (
-                            <span className="whitespace-nowrap bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">In Stock</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-black text-[#111111] whitespace-nowrap">{formatCurrency(p.price)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <button onClick={() => openAdjust(p)}
-                              className="flex items-center gap-1 bg-[#FFF8F2] text-[#E87020] border border-[#FDDBB4] px-2.5 py-1.5 rounded-lg text-[11px] font-black hover:bg-orange-100">
-                              <RefreshCw size={11} /> Adjust
-                            </button>
-                            <button onClick={() => startEditProduct(p)}
-                              className="p-1.5 bg-gray-50 text-gray-500 hover:text-[#E87020] hover:bg-[#FFF8F2] rounded-lg border border-transparent hover:border-[#FDDBB4]">
-                              <Edit2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {filteredProducts.map(p => (
+                    <tr key={p.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                      <td className="p-4 font-bold text-near-black">{p.name}</td>
+                      <td className="p-4"><span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
+                      <td className="p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
+                      <td className="p-4 font-bold text-near-black">
+                        {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
+                      </td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -619,269 +245,163 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* ── ADD / EDIT PRODUCTS TAB ── */}
       {activeTab === 'products' && (
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-          {/* Form */}
-          <div className="xl:col-span-2">
-            <form onSubmit={handleSaveProduct} className="bg-white rounded-2xl border border-[#FDDBB4]/60 shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-black text-[#111111]">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-                {editingProduct && (
-                  <button type="button" onClick={resetProductForm} className="text-sm text-[#6B7280] hover:text-[#111111] font-bold">
-                    + New Product
-                  </button>
-                )}
-              </div>
-
-              {productNotice && (
-                <div className={`p-3 rounded-xl text-sm font-bold text-center ${productNotice.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {productNotice}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-[#374151] mb-1.5">Product Name *</label>
-                <input type="text" required value={productForm.name} onChange={e => setProductForm(f => ({...f, name: e.target.value}))}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]"
-                  placeholder="e.g. Salwar Kameez Set" />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-[#374151] mb-1.5">Category</label>
-                <select value={productForm.category} onChange={e => setProductForm(f => ({...f, category: e.target.value}))}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020] bg-white">
-                  <option value="">— Select Category —</option>
-                  {categories.filter(c => c.is_active).map(c => (
-                    <option key={String(c.id)} value={c.name_en}>{c.name_en}</option>
-                  ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
+          <h3 className="text-xl font-black text-near-black mb-6">{editingProduct ? 'Edit Catalog Item' : 'Add Catalog Item'}</h3>
+          <form onSubmit={handleSaveProduct} className="space-y-4">
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Item Name</label><input required className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
+              <select required className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                <option value="">Select Category</option>
+                {categories.filter(c => !c.is_manual_entry).map(c => <option key={c.id} value={c.name_en}>{c.name_en}</option>)}
+              </select>
+            </div>
+            {form.category === 'Lenses -> Non-Branded' && (
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Lens Type</label>
+                <select className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.lens_type} onChange={e => setForm({...form, lens_type: e.target.value})}>
+                  <option value="">None</option>
+                  <option value="Single Vision">Single Vision</option>
+                  <option value="Progressive">Progressive</option>
+                  <option value="Bifocal">Bifocal</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-[#374151] mb-1.5">Price (RM) *</label>
-                <input type="number" required step="0.01" min="0" value={productForm.price} onChange={e => setProductForm(f => ({...f, price: e.target.value}))}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]"
-                  placeholder="0.00" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-[#374151] mb-1.5">Stock Qty</label>
-                  <input type="number" min="0" value={productForm.stock_quantity} onChange={e => setProductForm(f => ({...f, stock_quantity: e.target.value}))}
-                    className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-[#374151] mb-1.5">Low Stock Alert</label>
-                  <input type="number" min="0" value={productForm.low_stock_alert} onChange={e => setProductForm(f => ({...f, low_stock_alert: e.target.value}))}
-                    className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" />
-                </div>
-              </div>
-
-              {/* Item Type Toggle */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-wider text-[#6B7280]">Type</label>
-                <div className="flex gap-2">
-                  <button type="button"
-                    onClick={() => setProductForm(f => ({ ...f, item_type: 'product' }))}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${productForm.item_type === 'product' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-[#374151] border-[#FDDBB4]/60 hover:border-blue-300'}`}>
-                    📦 Product
-                  </button>
-                  <button type="button"
-                    onClick={() => setProductForm(f => ({ ...f, item_type: 'service' }))}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${productForm.item_type === 'service' ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-[#374151] border-[#FDDBB4]/60 hover:border-purple-300'}`}>
-                    ✂️ Service
-                  </button>
-                </div>
-                <p className="text-[10px] text-[#9CA3AF]">Products = physical items sold. Services = tailoring, stitching, alterations.</p>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-[#FAFAFA] rounded-xl border border-[#FDDBB4]/60">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-bold text-[#374151]">
-                  <input type="checkbox" checked={productForm.is_active} onChange={e => setProductForm(f => ({...f, is_active: e.target.checked}))}
-                    className="w-4 h-4 accent-[#E87020]" />
-                  Active (visible in Billing Panel)
-                </label>
-              </div>
-
-              <div className="flex gap-3">
-                <button type="submit" disabled={savingProduct}
-                  className="flex-1 bg-[#E87020] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#C85C10] disabled:opacity-50">
-                  {savingProduct ? 'Saving...' : editingProduct ? 'Update Product' : 'Add Product'}
-                </button>
-                {editingProduct && (
-                  <button type="button" onClick={() => void handleDeleteProduct(editingProduct)}
-                    className="px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold text-sm hover:bg-red-100">
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Product List (right side) */}
-          <div className="xl:col-span-3">
-            <div className="bg-white rounded-2xl border border-[#FDDBB4]/60 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#FDDBB4]/60 bg-[#FAFAFA]">
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                  <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..."
-                    className="w-full pl-8 pr-4 py-2 bg-white border border-[#FDDBB4]/60 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" />
-                </div>
-              </div>
-              <div className="overflow-y-auto max-h-[600px] divide-y divide-[#FDDBB4]/30">
-                {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map(p => (
-                  <div key={String(p.id)} className={`flex items-center justify-between px-4 py-3 hover:bg-[#FAFAFA] ${editingProduct?.id === p.id ? 'bg-orange-50 border-l-4 border-[#E87020]' : ''}`}>
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-[#111111] truncate">{p.name}</p>
-                      <p className="text-[11px] text-[#6B7280]">{p.category || 'No category'} · {formatCurrency(p.price)} · Stock: <span className={`font-black ${getStatus(p) === 'out' ? 'text-red-600' : getStatus(p) === 'low' ? 'text-orange-600' : 'text-green-600'}`}>{p.stock_quantity}</span></p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      {!p.is_active && <span className="text-[10px] font-black uppercase text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Hidden</span>}
-                      <button onClick={() => startEditProduct(p)} className="p-1.5 text-[#374151] hover:text-[#E87020] hover:bg-[#FFF8F2] rounded-lg border border-transparent hover:border-[#FDDBB4]">
-                        <Edit2 size={14} />
-                      </button>
-                      <button onClick={() => void handleDeleteProduct(p)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── CATEGORIES TAB ── */}
-      {activeTab === 'categories' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Add Category */}
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 p-5">
-            <h3 className="text-base font-black text-[#111111] mb-4 flex items-center gap-2"><Plus size={16} className="text-[#E87020]" /> Add Category</h3>
-            <form onSubmit={handleAddCategory} className="flex gap-2">
-              <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="e.g. Blouse, Saree, Lehenga"
-                className="flex-1 border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]" required />
-              <button type="submit" disabled={savingCat}
-                className="bg-[#E87020] text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-[#C85C10] disabled:opacity-50">
-                Add
-              </button>
-            </form>
-            {catNotice && <p className="mt-2 text-sm font-bold text-green-600">{catNotice}</p>}
-          </div>
-
-          {/* Category List */}
-          <div className="bg-white rounded-2xl shadow-sm border border-[#FDDBB4]/60 overflow-hidden">
-            <div className="px-4 py-3 bg-[#FAFAFA] border-b border-[#FDDBB4]/60">
-              <h3 className="text-[11px] font-black uppercase tracking-wider text-[#374151]">All Categories ({categories.length})</h3>
-            </div>
-            {categories.length === 0 ? (
-              <p className="text-center p-6 text-[#6B7280] text-sm font-bold">No categories yet.</p>
-            ) : (
-              <div className="divide-y divide-[#FDDBB4]/30">
-                {categories.map(cat => (
-                  <div key={String(cat.id)} className="flex items-center justify-between px-4 py-3">
-                    {editingCat?.id === cat.id ? (
-                      <div className="flex items-center gap-2 flex-1 mr-2">
-                        <input value={editingCatName} onChange={e => setEditingCatName(e.target.value)} autoFocus
-                          className="flex-1 border border-[#FDDBB4]/60 p-1.5 rounded-lg text-sm font-bold outline-none focus:border-[#E87020]" />
-                        <button onClick={() => void handleSaveEditCat(cat)} className="text-[11px] font-black text-white bg-[#E87020] px-2.5 py-1.5 rounded-lg">Save</button>
-                        <button onClick={() => setEditingCat(null)} className="text-[11px] font-black text-[#6B7280] px-2 py-1.5 rounded-lg hover:bg-gray-100">✕</button>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="font-bold text-sm text-[#111111]">{cat.name_en}</p>
-                        <span className={`text-[10px] font-black uppercase tracking-wider ${cat.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                          {cat.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    )}
-                    {editingCat?.id !== cat.id && (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => { setEditingCat(cat); setEditingCatName(cat.name_en) }} className="p-1.5 text-[#374151] hover:text-[#E87020] hover:bg-[#FFF8F2] rounded-lg">
-                          <Edit2 size={13} />
-                        </button>
-                        <button onClick={() => void handleToggleCat(cat)} className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg border ${cat.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                          {cat.is_active ? 'Active' : 'Inactive'}
-                        </button>
-                        <button onClick={() => void handleDeleteCat(cat)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
               </div>
             )}
+            <div className="flex items-center gap-4 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.is_price_editable} onChange={e => setForm({...form, is_price_editable: e.target.checked})} className="w-5 h-5 accent-choc-brown" />
+                <span className="text-sm font-bold text-near-black">Price is editable at billing (e.g. Premium)</span>
+              </label>
+            </div>
+            {!form.is_price_editable && (
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Base Price (₹)</label><input type="number" required className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.price} onChange={e => setForm({...form, price: e.target.value})} /></div>
+            )}
+            <div className="pt-4 flex gap-4">
+              <button type="submit" className="flex-1 bg-choc-brown text-white py-3 rounded-xl font-black hover:bg-near-black">Save Item</button>
+              {editingProduct && <button type="button" onClick={() => {setEditingProduct(null); setForm(EMPTY_FORM)}} className="px-6 border border-[#D8D0C5] text-near-black rounded-xl font-black">Cancel</button>}
+            </div>
+          </form>
+          </div>
+          <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
+            <div className="p-6 border-b border-[#F3F4F6] flex justify-between items-center bg-[#FBFAF6]">
+              <h3 className="font-black text-near-black">Items in {form.category || 'Selected Category'}</h3>
+              <span className="text-xs font-bold text-gray-500">{products.filter(p => form.category ? p.category === form.category : true).length} items</span>
+            </div>
+            <div className="overflow-y-auto flex-1 p-0">
+              {form.category ? (
+                <table className="w-full text-left text-sm text-[#374151]">
+                  <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
+                    <tr>
+                      <th className="p-4 font-black">Name</th>
+                      <th className="p-4 font-black">Type</th>
+                      <th className="p-4 font-black">Price</th>
+                      <th className="p-4 font-black text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6]">
+                    {products.filter(p => p.category === form.category).map(p => (
+                      <tr key={p.id} className="hover:bg-[#F9FAFB]">
+                        <td className="p-4 font-bold text-near-black">{p.name}</td>
+                        <td className="p-4 text-xs font-semibold text-gray-500">{p.lens_type || '-'}</td>
+                        <td className="p-4 font-bold">{p.is_price_editable ? <span className="text-gray-400 italic">Editable</span> : formatCurrency(p.price)}</td>
+                        <td className="p-4 text-right">
+                          <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}) }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
+                          <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {products.filter(p => p.category === form.category).length === 0 && (
+                      <tr><td colSpan={4} className="p-8 text-center text-gray-400 italic font-medium">No items found in this category.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="p-12 text-center text-gray-400 italic font-medium">Select a category on the left to see its items.</div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* 📊 ANALYTICS & REPORTS TAB 📊 */}
-      {activeTab === 'analytics' && <InventoryAnalytics products={products} downloadCSV={downloadCSV} />}
-
-      {/* ── Adjust Stock Modal ── */}
-      {adjustModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-black text-[#111111]">Adjust Stock</h2>
-              <button onClick={() => setAdjustModal(null)} className="p-2 rounded-xl hover:bg-gray-100"><X size={18} /></button>
+      {activeTab === 'addons' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
+            <h3 className="text-xl font-black text-near-black mb-2">New Lens Add-on</h3>
+            <p className="text-sm text-gray-500 mb-6 font-medium">Add-ons appear as checkboxes when billing Non-Branded lenses.</p>
+            <form onSubmit={e => {
+              e.preventDefault()
+              const fd = new FormData(e.target as HTMLFormElement)
+              handleAddonSave(e, {name: fd.get('name'), price: fd.get('price')}, false).then(() => (e.target as HTMLFormElement).reset())
+            }} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Add-on Name</label>
+                <input name="name" required placeholder="e.g. Anti-Reflective Coating" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price (?)</label>
+                <input name="price" type="number" required placeholder="0.00" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" />
+              </div>
+              <button className="w-full bg-choc-brown text-white py-3 rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2 mt-4"><Plus size={18} /> Save Add-on</button>
+            </form>
+          </div>
+          <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
+             <div className="p-6 border-b border-[#F3F4F6] flex justify-between items-center bg-[#FBFAF6]">
+              <h3 className="font-black text-near-black">Existing Add-ons</h3>
+              <span className="text-xs font-bold text-gray-500">{addons.length} items</span>
             </div>
-
-            <div className="bg-[#FAFAFA] rounded-xl p-3 mb-4 flex justify-between items-center border border-[#FDDBB4]/60">
-              <div>
-                <p className="text-[11px] font-black uppercase text-[#6B7280]">Product</p>
-                <p className="font-black text-[#111111]">{adjustModal.product.name}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[11px] font-black uppercase text-[#6B7280]">Current Stock</p>
-                <p className={`text-2xl font-black ${getStatus(adjustModal.product) === 'out' ? 'text-red-600' : getStatus(adjustModal.product) === 'low' ? 'text-orange-600' : 'text-[#111111]'}`}>
-                  {adjustModal.product.stock_quantity}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Reason</label>
-                <select value={adjustModal.adjustType} onChange={e => setAdjustModal(m => m ? { ...m, adjustType: e.target.value as AdjustModal['adjustType'] } : m)}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020] bg-white">
-                  <option value="restock">Restock (received new stock)</option>
-                  <option value="correction">Correction (fix count)</option>
-                  <option value="loss">Loss / Damaged</option>
-                  <option value="return">Customer Return</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">New Quantity</label>
-                <input type="number" min="0" value={adjustModal.newQty} onChange={e => setAdjustModal(m => m ? { ...m, newQty: e.target.value } : m)}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020] text-right" />
-                {adjustModal.newQty !== '' && !isNaN(parseFloat(adjustModal.newQty)) && (
-                  <p className="text-[11px] text-[#6B7280] mt-1 text-right">
-                    Change: <span className={parseFloat(adjustModal.newQty) >= adjustModal.product.stock_quantity ? 'text-green-600 font-black' : 'text-red-600 font-black'}>
-                      {parseFloat(adjustModal.newQty) >= adjustModal.product.stock_quantity ? '+' : ''}{parseFloat(adjustModal.newQty) - adjustModal.product.stock_quantity}
-                    </span>
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-[#374151] mb-1.5">Note</label>
-                <input type="text" value={adjustModal.note} onChange={e => setAdjustModal(m => m ? { ...m, note: e.target.value } : m)}
-                  className="w-full border border-[#FDDBB4]/60 p-2.5 rounded-xl text-sm font-bold outline-none focus:border-[#E87020]"
-                  placeholder="Optional note..." />
-              </div>
-              {notice && <p className="text-sm text-red-600 font-bold bg-red-50 p-3 rounded-xl">{notice}</p>}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => { setAdjustModal(null); setNotice('') }} className="flex-1 bg-gray-100 p-3 rounded-xl font-bold text-sm hover:bg-gray-200">Cancel</button>
-                <button onClick={() => void saveAdjust()} disabled={saving} className="flex-1 bg-[#E87020] text-white p-3 rounded-xl font-bold text-sm hover:bg-[#C85C10] disabled:opacity-50">
-                  {saving ? 'Saving...' : 'Save'}
-                </button>
-              </div>
+            <div className="overflow-y-auto flex-1 p-0">
+              <table className="w-full text-left text-sm text-[#374151]">
+                <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
+                  <tr>
+                    <th className="p-4 font-black">Name</th>
+                    <th className="p-4 font-black">Price</th>
+                    <th className="p-4 font-black text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F3F4F6]">
+                  {addons.map(a => (
+                    <tr key={a.id} className="hover:bg-[#F9FAFB]">
+                      <td className="p-4 font-bold text-near-black">{a.name}</td>
+                      <td className="p-4 font-bold">{formatCurrency(a.price)}</td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => supabase.from('lens_addons').delete().eq('id', a.id).then(fetchData)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                  {addons.length === 0 && <tr><td colSpan={3} className="p-8 text-center text-gray-400 italic font-medium">No add-ons yet.</td></tr>}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
+
+      {activeTab === 'categories' && (
+        <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
+          <table className="w-full text-left text-sm text-[#374151]">
+            <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
+              <tr>
+                <th className="p-4 font-black">Category</th>
+                <th className="p-4 font-black">Entry Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map(c => (
+                <tr key={c.id} className="border-b border-[#F3F4F6]">
+                  <td className="p-4 font-bold text-near-black">{c.name_en}</td>
+                  <td className="p-4">
+                    {c.is_manual_entry 
+                      ? <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-800">Manual Entry (Free Text)</span>
+                      : <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-green-100 text-green-800">Catalog Selection</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'analytics' && <InventoryAnalytics />}
     </div>
   )
 }

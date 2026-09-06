@@ -1,4 +1,4 @@
--- Align the live legacy billing schema with the current Purple Boutique RPC payload.
+-- Align the live legacy billing schema with the current Specson RPC payload.
 -- Idempotent: safe for both upgraded and freshly migrated projects.
 
 BEGIN;

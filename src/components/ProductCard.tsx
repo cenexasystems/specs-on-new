@@ -42,7 +42,7 @@ export default function ProductCard({ product }: { product: Product }) {
     product.offerPrice && product.offerPrice < product.price
       ? Math.round(((product.price - product.offerPrice) / product.price) * 100)
       : 0
-  // Use the default variant's price; never show "from RM X" min-price
+  // Use the default variant's price; never show "from ₹ X" min-price
   const displayPrice =
     product.hasVariants && defaultVariant != null ? defaultVariant.price : basePrice
   // Weight / size label shown under product name
@@ -91,7 +91,7 @@ export default function ProductCard({ product }: { product: Product }) {
         whileTap={{ scale: 0.95 }}
         onClick={(e) => { e.stopPropagation(); void toggle(product) }}
         className={`absolute right-1.5 top-1.5 z-10 hidden xl:flex h-7 w-7 items-center justify-center rounded-full border transition-colors ${
-          fav ? 'border-rose-200 bg-rose-50' : 'border-[#FDDBB4] bg-white/90'
+          fav ? 'border-rose-200 bg-rose-50' : 'border-[#D8D0C5] bg-white/90'
         }`}
         type="button"
         aria-label={fav ? 'Remove from favourites' : 'Add to favourites'}
@@ -100,7 +100,7 @@ export default function ProductCard({ product }: { product: Product }) {
       </motion.button>
 
       {discount > 0 && (
-        <div className="absolute left-2 top-2 z-10 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-black text-white">
+        <div className="absolute left-2 top-2 z-10 rounded-full bg-warm-beige\/300 px-1.5 py-0.5 text-[10px] font-black text-white">
           {discount}% OFF
         </div>
       )}

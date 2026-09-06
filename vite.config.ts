@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: [
-        'thenn-nadu-logo.jpeg',
+        'specson-logo.jpeg',
         'pwa-192x192.png',
         'pwa-512x512.png',
         'maskable-icon-512x512.png',
@@ -18,10 +18,10 @@ export default defineConfig({
         'robots.txt',
       ],
       manifest: {
-        name: 'Thenn Nadu Billing',
+        name: 'Specson Billing',
         short_name: 'TN Billing',
-        description: "Thenn Nadu Billing – POS, advance orders, catalog, invoices, and analytics.",
-        theme_color: '#E87020',
+        description: "Specson Billing – POS, advance orders, catalog, invoices, and analytics.",
+        theme_color: '#3B261B',
         background_color: '#FBFAF6',
         display: 'standalone',
         orientation: 'any',

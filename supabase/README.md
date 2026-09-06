@@ -1,6 +1,6 @@
-# Purple Boutique Supabase setup
+# Specson Supabase setup
 
-Apply the migrations in filename order to the dedicated Purple Boutique Supabase project.
+Apply the migrations in filename order to the dedicated Specson Supabase project.
 
 1. Run `20260716_0001_purple_boutique_schema.sql`.
 2. Run `20260716_0002_purple_boutique_catalog.sql`.

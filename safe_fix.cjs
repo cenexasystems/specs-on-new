@@ -14,9 +14,9 @@ const safeReplacements = [
   ['#D1FAE5', '#FDE2E9'],
   ['#ECFDF5', '#FFF0F3'],
   // Brand text
-  ['Purple Boutique', "Sreeja's Bridal Boutique"],
-  ['PURPLE BOUTIQUE', "SREEJA'S BRIDAL BOUTIQUE"],
-  ['purple-boutique', 'sreejas-bridal-botique'],
+  ['Specson', "Sreeja's Bridal Boutique"],
+  ['SPECSON', "SREEJA'S BRIDAL BOUTIQUE"],
+  ['specson', 'sreejas-bridal-botique'],
   ['purpleboutique.my', 'sreejas-bridal-botique.vercel.app'],
   // Locale
   ["en-GB", "en-IN"],

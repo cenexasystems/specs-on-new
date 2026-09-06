@@ -138,7 +138,7 @@ Dear ${customerName},
 
 .
 
-✂️ Tailoring & preparation for your clothes is now underway. We will have everything ready on or before ${deliveryDateFormatted} for final payment and delivery/pickup!
+👓 Processing & preparation for your order is now underway. We will have everything ready on or before ${deliveryDateFormatted} for final payment and delivery/pickup!
 
 .
 

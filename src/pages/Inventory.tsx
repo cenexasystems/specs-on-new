@@ -118,10 +118,6 @@ export default function Inventory() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     const cat = categories.find(c => c.name_en === form.category)
-    if (cat?.is_manual_entry) {
-      alert("Cannot add catalog items to a manual-entry category.")
-      return
-    }
 
     const payload = {
       name: form.name,

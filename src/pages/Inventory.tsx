@@ -254,7 +254,7 @@ export default function Inventory() {
             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
               <select required className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
                 <option value="">Select Category</option>
-                {categories.filter(c => !c.is_manual_entry).map(c => <option key={c.id} value={c.name_en}>{c.name_en}</option>)}
+                {categories.map(c => <option key={c.id} value={c.name_en}>{c.name_en}</option>)}
               </select>
             </div>
             {form.category === 'Lenses -> Non-Branded' && (

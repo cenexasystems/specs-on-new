@@ -325,7 +325,7 @@ export default function Dashboard() {
   }, [user?.id])
 
   // Analytics (date-aware)
-  const lowStockProducts = products.filter(p => p.isActive && (p.stockQuantity || 0) <= (p.lowStockAlert || 5))
+  const lowStockProducts: any[] = []
   const analytics = useMemo(() => {
     // Apply global date filter
     let dated = orders

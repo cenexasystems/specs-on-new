@@ -222,6 +222,7 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <h4 className="text-[13px] font-black text-[#111111] leading-tight group-hover:text-[#3B261B] transition-colors truncate">{product.name}</h4>
+                            {product.lensType && <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#3B261B]/10 text-[#3B261B] border border-[#3B261B]/20">{product.lensType}</span>}
                             {product.nameTa && <p className="text-[10px] font-bold text-[#374151] mt-0.5 truncate">{product.nameTa}</p>}
                           </div>
                           

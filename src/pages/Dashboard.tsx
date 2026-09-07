@@ -2183,12 +2183,10 @@ export default function Dashboard() {
             {/* Revenue sub-tab */}
             {posAnalyticsTab === 'revenue' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
                     { label: 'NET PROFIT',       helper: 'Total - COGS - Expenses', value: formatCurrency(analytics.netProfit),             icon: <TrendingUp size={16} />,  color: 'text-emerald-600', bg: 'bg-emerald-100' },
-                    { label: 'TOTAL REVENUE',    helper: 'POS + Tailoring',         value: formatCurrency(analytics.totalCompletedRevenue), icon: <RMIcon size={16} />,      color: 'text-blue-500',    bg: 'bg-blue-50' },
-                    { label: 'PRODUCT REVENUE',  helper: 'POS Retail Sales',        value: formatCurrency(analytics.productRevenue),        icon: <Package size={16} />,     color: 'text-choc-brown',  bg: 'bg-warm-beige/30' },
-                    { label: 'SERVICE REVENUE',  helper: 'Advance Orders',          value: formatCurrency(analytics.serviceRevenue),        icon: <FileText size={16} />,    color: 'text-cyan-500',    bg: 'bg-cyan-50' },
+                    { label: 'TOTAL REVENUE',    helper: 'POS + completed bills',   value: formatCurrency(analytics.totalCompletedRevenue), icon: <RMIcon size={16} />,      color: 'text-blue-500',    bg: 'bg-blue-50' },
                     { label: 'TOTAL EXPENSES',   helper: 'All logged expenses',     value: formatCurrency(analytics.totalExpenses),         icon: <Receipt size={16} />,     color: 'text-red-500',     bg: 'bg-red-50' },
                   ].map((card, index) => (
                     <div key={index} className="bg-white rounded-card border border-borderLight p-5 shadow-soft">
@@ -2204,7 +2202,7 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                   {[
                     { label: 'TOTAL OFFLINE BILLS', helper: 'Walk-in POS orders',    value: analytics.offlineOrderCount,                    icon: <LayoutDashboard size={16} />, color: 'text-red-500',    bg: 'bg-red-50' },
                     { label: 'TOTAL ONLINE BILLS',  helper: 'Live completed online bills', value: analytics.onlineBillCount,               icon: <Box size={16} />,             color: 'text-blue-500',   bg: 'bg-blue-50' },
@@ -2225,7 +2223,7 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-card border border-borderLight p-6 shadow-soft">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <h3 className="text-[16px] font-bold text-[#111111]">Revenue Trend {analytics.chartYear}</h3>
@@ -2288,7 +2286,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-card border border-borderLight p-6 shadow-soft">
                     <div className="flex items-center justify-between gap-3 mb-6">
                       <div>
@@ -2641,7 +2639,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Coupon daily trend + Top coupons */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-2xl border border-[#FDDBB4]/30 p-5 shadow-sm">
                     <h3 className="text-[15px] font-bold text-[#111111] mb-4">Coupon Usage (Last 7 Days)</h3>
                     {analytics.couponDailyTrend.some(d => d.orders > 0) ? (

@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: [
-        'specson-logo.jpeg',
+        'specson-logo.jpg',
         'pwa-192x192.png',
         'pwa-512x512.png',
         'maskable-icon-512x512.png',
@@ -19,7 +19,7 @@ export default defineConfig({
       ],
       manifest: {
         name: 'Specson Billing',
-        short_name: 'TN Billing',
+        short_name: 'Specson',
         description: "Specson Billing – POS, advance orders, catalog, invoices, and analytics.",
         theme_color: '#3B261B',
         background_color: '#FBFAF6',
@@ -29,21 +29,21 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: '/specson-logo.jpg',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any',
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/specson-logo.jpg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any',
           },
           {
-            src: '/maskable-icon-512x512.png',
+            src: '/specson-logo.jpg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'maskable',
           },
         ],

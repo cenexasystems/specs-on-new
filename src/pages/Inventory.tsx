@@ -131,12 +131,12 @@ export default function Inventory() {
 
     if (editingProduct) {
       const { error } = await supabase.from('products').update(payload).eq('id', editingProduct.id)
-      if (error) alert("An error occurred")
-      else { ; setEditingProduct(null); setForm(EMPTY_FORM); fetchData() }
+      if (error) alert("Save failed: " + error.message)
+      else { setEditingProduct(null); setForm(EMPTY_FORM); fetchData() }
     } else {
       const { error } = await supabase.from('products').insert([payload])
-      if (error) alert("An error occurred")
-      else { ; setForm(EMPTY_FORM); fetchData() }
+      if (error) alert("Save failed: " + error.message)
+      else { setForm(EMPTY_FORM); fetchData() }
     }
   }
 

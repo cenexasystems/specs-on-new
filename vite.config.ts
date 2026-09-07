@@ -29,21 +29,21 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: '/specson-logo.jpg',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/specson-logo.jpg',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/specson-logo.jpg',
+            src: '/maskable-icon-512x512.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'maskable',
           },
         ],

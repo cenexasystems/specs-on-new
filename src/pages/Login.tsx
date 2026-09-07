@@ -1793,7 +1793,7 @@ export default function Dashboard() {
             </div>
 
             {/* Status summary cards */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: l('Total Requests', 'மொத்த கோரிக்கை'), val: analytics.waRequests,  bg: 'bg-blue-50',   color: 'text-blue-700',   border: 'border-blue-100' },
                 { label: l('Pending', 'நிலுவை'),                 val: analytics.waPending,   bg: 'bg-amber-50',  color: 'text-amber-700',  border: 'border-amber-100' },
@@ -2160,7 +2160,7 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-card border border-borderLight p-6 shadow-soft">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <h3 className="text-[16px] font-bold text-[#111111]">Revenue Trend {analytics.chartYear}</h3>
@@ -2223,7 +2223,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-card border border-borderLight p-6 shadow-soft">
                     <div className="flex items-center justify-between gap-3 mb-6">
                       <div>
@@ -2576,7 +2576,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Coupon daily trend + Top coupons */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="xl:col-span-2 bg-white rounded-2xl border border-[#FDDBB4]/30 p-5 shadow-sm">
                     <h3 className="text-[15px] font-bold text-[#111111] mb-4">Coupon Usage (Last 7 Days)</h3>
                     {analytics.couponDailyTrend.some(d => d.orders > 0) ? (
@@ -2964,7 +2964,7 @@ export default function Dashboard() {
 
         {/* ΓöÇΓöÇ INVENTORY TAB ΓöÇΓöÇ */}
         {tab === 'products' && (
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {/* Product Form */}
             <div className="xl:col-span-2">
               <form onSubmit={handleSaveProd} className="bg-white rounded-2xl border border-borderLight p-6 shadow-sm space-y-5">

@@ -303,34 +303,28 @@ export default function Inventory() {
               <Search className="text-gray-400" size={20} />
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
-            <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
-              <table className="w-full min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]" style={{ width: '100%', maxWidth: '100%', tableLayout: 'fixed' }}>
-                <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
-                  <tr>
-                    <th className="p-4 font-black">Product</th>
-                    <th className="hidden sm:table-cell p-4 font-black">Category</th>
-                    <th className="hidden sm:table-cell p-4 font-black">Type / Tier</th>
-                    <th className="p-4 font-black">Price</th>
-                    <th className="p-4 font-black text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProducts.map(p => (
-                    <tr key={p.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                      <td className="p-3 font-bold text-near-black break-words">{p.name}</td>
-                      <td className="hidden sm:table-cell p-3"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown break-words">{p.category}</span></td>
-                      <td className="hidden sm:table-cell p-3 text-gray-500 font-semibold break-words">{p.lens_type || '-'}</td>
-                      <td className="p-3 font-bold text-near-black break-words">
-                        {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
-                      </td>
-                      <td className="p-3 text-right whitespace-nowrap">
-                        <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
-                        <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="w-full">
+              <div className="hidden sm:grid grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] font-black">
+                <span>Product</span>
+                <span>Category</span>
+                <span>Type / Tier</span>
+                <span>Price</span>
+                <span className="text-right">Actions</span>
+              </div>
+              {filteredProducts.map(p => (
+                <div key={p.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-3 sm:gap-4 items-center px-3 sm:px-4 py-3 border-t border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors text-xs sm:text-sm">
+                  <span className="font-bold text-near-black min-w-0 break-words">{p.name}</span>
+                  <span className="hidden sm:block min-w-0"><span className="inline-block max-w-full px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown break-words">{p.category}</span></span>
+                  <span className="hidden sm:block text-gray-500 font-semibold break-words">{p.lens_type || '-'}</span>
+                  <span className="font-bold text-near-black break-words">
+                    {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
+                  </span>
+                  <span className="text-right whitespace-nowrap">
+                    <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
+                    <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -593,7 +593,7 @@ export default function Pos(props: PosProps = {}) {
       const effectiveBillingDate = billingDate.trim()
         ? new Date(billingDate).toISOString()
         : new Date().toISOString()
-      await supabase.from('orders').update({
+      const { error: metadataError } = await supabase.from('orders').update({
         subtotal,
         total,
         total_gst: totalGst,
@@ -608,6 +608,9 @@ export default function Pos(props: PosProps = {}) {
         eye_prescription: eyePrescription,
         billing_date: effectiveBillingDate,
       }).eq('id', created.orderId)
+      if (metadataError) {
+        throw new Error(`Invoice details could not be saved: ${metadataError.message}`)
+      }
       const createdInvoice: InvoiceSnap = {
         id: created.orderId,
         invoiceNo: created.invoiceNo,

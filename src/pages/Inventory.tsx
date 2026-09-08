@@ -99,6 +99,9 @@ export default function Inventory() {
   // Form states
   const [editingProduct, setEditingProduct] = useState<CatalogProduct | null>(null)
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [categoryForm, setCategoryForm] = useState({ name_en: '', is_manual_entry: false })
+  const [categoryError, setCategoryError] = useState('')
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -163,6 +166,42 @@ export default function Inventory() {
       await supabase.from('lens_addons').insert([{name: addonForm.name, price: parseFloat(addonForm.price)}])
     }
     fetchData()
+  }
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = categoryForm.name_en.trim()
+    if (!name) {
+      setCategoryError('Category name is required')
+      return
+    }
+
+    setCategoryError('')
+    const previousName = editingCategory?.name_en
+    const payload = { name_en: name, name_ta: '', is_manual_entry: categoryForm.is_manual_entry }
+    const { error } = editingCategory
+      ? await supabase.from('categories').update(payload).eq('id', editingCategory.id)
+      : await supabase.from('categories').insert({ ...payload, is_active: true })
+
+    if (error) {
+      setCategoryError(error.message)
+      return
+    }
+
+    if (editingCategory && previousName !== name) {
+      const { error: productUpdateError } = await supabase
+        .from('products')
+        .update({ category: name })
+        .eq('category_id', editingCategory.id)
+      if (productUpdateError) {
+        setCategoryError(productUpdateError.message)
+        return
+      }
+    }
+
+    setEditingCategory(null)
+    setCategoryForm({ name_en: '', is_manual_entry: false })
+    await fetchData()
   }
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
@@ -381,12 +420,55 @@ export default function Inventory() {
       )}
 
       {activeTab === 'categories' && (
-        <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-xl font-black text-near-black">{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Choose whether billing uses a catalog item or free text.</p>
+              </div>
+              {editingCategory && (
+                <button
+                  type="button"
+                  onClick={() => { setEditingCategory(null); setCategoryForm({ name_en: '', is_manual_entry: false }); setCategoryError('') }}
+                  className="px-4 py-2 border border-[#D8D0C5] text-near-black rounded-xl font-black"
+                >Cancel</button>
+              )}
+            </div>
+            <form onSubmit={handleSaveCategory} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 items-end">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category Name</label>
+                <input
+                  required
+                  value={categoryForm.name_en}
+                  onChange={e => setCategoryForm({...categoryForm, name_en: e.target.value})}
+                  placeholder="e.g. Contact Lenses"
+                  className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold"
+                />
+              </div>
+              <label className="flex items-center gap-2 h-12 px-4 border border-[#D8D0C5] rounded-xl cursor-pointer whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={categoryForm.is_manual_entry}
+                  onChange={e => setCategoryForm({...categoryForm, is_manual_entry: e.target.checked})}
+                  className="w-5 h-5 accent-choc-brown"
+                />
+                <span className="text-sm font-bold text-near-black">Manual entry</span>
+              </label>
+              <button type="submit" className="h-12 px-6 bg-choc-brown text-white rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2">
+                <Plus size={18} /> {editingCategory ? 'Update Category' : 'Add Category'}
+              </button>
+            </form>
+            {categoryError && <p className="mt-3 text-sm font-bold text-red-600">{categoryError}</p>}
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
           <table className="w-full text-left text-sm text-[#374151]">
             <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
               <tr>
                 <th className="p-4 font-black">Category</th>
                 <th className="p-4 font-black">Entry Type</th>
+                <th className="p-4 font-black text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -398,10 +480,19 @@ export default function Inventory() {
                       ? <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-800">Manual Entry (Free Text)</span>
                       : <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-green-100 text-green-800">Catalog Selection</span>}
                   </td>
+                  <td className="p-4 text-right">
+                    <button
+                      type="button"
+                      title="Edit category"
+                      onClick={() => { setEditingCategory(c); setCategoryForm({ name_en: c.name_en, is_manual_entry: c.is_manual_entry }); setCategoryError('') }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    ><Edit2 size={16} /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

@@ -303,8 +303,8 @@ export default function Inventory() {
               <Search className="text-gray-400" size={20} />
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
-            <div className="overflow-x-hidden">
-              <table className="w-full min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
+            <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
+              <table className="w-full min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]" style={{ width: '100%', maxWidth: '100%', tableLayout: 'fixed' }}>
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                   <tr>
                     <th className="p-4 font-black">Product</th>

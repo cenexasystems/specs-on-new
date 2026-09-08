@@ -255,15 +255,15 @@ export default function Inventory() {
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div className="space-y-6 min-h-screen pb-16">
+    <div className="space-y-4 sm:space-y-6 min-h-screen pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-near-black">Catalog & Inventory</h1>
-          <p className="text-sm font-semibold text-gray-500 mt-1">Manage pricing tiers and manual categories</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-near-black">Catalog & Inventory</h1>
+          <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-1">Manage pricing tiers and manual categories</p>
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
         {[
           { id: 'catalog', label: 'Catalog Overview', icon: Package },
           { id: 'products', label: 'Add / Edit Products', icon: Edit2 },
@@ -274,27 +274,27 @@ export default function Inventory() {
           const Icon = t.icon
           return (
             <button key={t.id} onClick={() => setActiveTab(t.id as any)}
-              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === t.id ? 'bg-choc-brown text-white shadow-md' : 'bg-white text-gray-600 hover:bg-warm-beige/30 hover:text-choc-brown'}`}>
-              <Icon size={16} /> {t.label}
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${activeTab === t.id ? 'bg-choc-brown text-white shadow-md' : 'bg-white text-gray-600 hover:bg-warm-beige/30 hover:text-choc-brown'}`}>
+              <Icon size={14} className="sm:h-4 sm:w-4" /> {t.label}
             </button>
           )
         })}
       </div>
 
       {activeTab === 'catalog' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Catalog Items</p>
-              <p className="mt-2 text-3xl font-black text-near-black">{products.length}</p>
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{products.length}</p>
             </div>
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Categories</p>
-              <p className="mt-2 text-3xl font-black text-near-black">{categories.length}</p>
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{categories.length}</p>
             </div>
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Manual-Entry Types</p>
-              <p className="mt-2 text-3xl font-black text-near-black">{categories.filter(c => c.is_manual_entry).length}</p>
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{categories.filter(c => c.is_manual_entry).length}</p>
             </div>
           </div>
 
@@ -304,7 +304,7 @@ export default function Inventory() {
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-[#374151]">
+              <table className="w-full min-w-[560px] text-left text-xs sm:text-sm text-[#374151]">
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                   <tr>
                     <th className="p-4 font-black">Product</th>
@@ -317,13 +317,13 @@ export default function Inventory() {
                 <tbody>
                   {filteredProducts.map(p => (
                     <tr key={p.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                      <td className="p-4 font-bold text-near-black">{p.name}</td>
-                      <td className="p-4"><span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
-                      <td className="p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
-                      <td className="p-4 font-bold text-near-black">
+                      <td className="p-3 sm:p-4 font-bold text-near-black">{p.name}</td>
+                      <td className="p-3 sm:p-4"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
+                      <td className="p-3 sm:p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
+                      <td className="p-3 sm:p-4 font-bold text-near-black">
                         {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-3 sm:p-4 text-right">
                         <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
                         <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                       </td>
@@ -337,9 +337,9 @@ export default function Inventory() {
       )}
 
       {activeTab === 'products' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
-          <h3 className="text-xl font-black text-near-black mb-6">{editingProduct ? 'Edit Catalog Item' : 'Add Catalog Item'}</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
+          <h3 className="text-lg sm:text-xl font-black text-near-black mb-5 sm:mb-6">{editingProduct ? 'Edit Catalog Item' : 'Add Catalog Item'}</h3>
           <form onSubmit={handleSaveProduct} className="space-y-4">
             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Item Name</label><input required className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
@@ -374,13 +374,13 @@ export default function Inventory() {
           </form>
           </div>
           <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
-            <div className="p-6 border-b border-[#F3F4F6] flex justify-between items-center bg-[#FBFAF6]">
-              <h3 className="font-black text-near-black">Items in {form.category || 'Selected Category'}</h3>
+            <div className="p-4 sm:p-6 border-b border-[#F3F4F6] flex justify-between items-center gap-3 bg-[#FBFAF6]">
+              <h3 className="text-sm sm:text-base font-black text-near-black truncate">Items in {form.category || 'Selected Category'}</h3>
               <span className="text-xs font-bold text-gray-500">{products.filter(p => form.category ? p.category === form.category : true).length} items</span>
             </div>
             <div className="overflow-y-auto flex-1 p-0">
               {form.category ? (
-                <table className="w-full text-left text-sm text-[#374151]">
+                <table className="w-full min-w-[500px] text-left text-xs sm:text-sm text-[#374151]">
                   <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
                     <tr>
                       <th className="p-4 font-black">Name</th>
@@ -392,10 +392,10 @@ export default function Inventory() {
                   <tbody className="divide-y divide-[#F3F4F6]">
                     {products.filter(p => p.category === form.category).map(p => (
                       <tr key={p.id} className="hover:bg-[#F9FAFB]">
-                        <td className="p-4 font-bold text-near-black">{p.name}</td>
-                        <td className="p-4 text-xs font-semibold text-gray-500">{p.lens_type || '-'}</td>
-                        <td className="p-4 font-bold">{p.is_price_editable ? <span className="text-gray-400 italic">Editable</span> : formatCurrency(p.price)}</td>
-                        <td className="p-4 text-right">
+                        <td className="p-3 sm:p-4 font-bold text-near-black">{p.name}</td>
+                        <td className="p-3 sm:p-4 text-[11px] sm:text-xs font-semibold text-gray-500">{p.lens_type || '-'}</td>
+                        <td className="p-3 sm:p-4 font-bold">{p.is_price_editable ? <span className="text-gray-400 italic">Editable</span> : formatCurrency(p.price)}</td>
+                        <td className="p-3 sm:p-4 text-right">
                           <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}) }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
                           <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                         </td>
@@ -415,10 +415,10 @@ export default function Inventory() {
       )}
 
       {activeTab === 'addons' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
-            <h3 className="text-xl font-black text-near-black mb-2">New Lens Add-on</h3>
-            <p className="text-sm text-gray-500 mb-6 font-medium">Add-ons appear as checkboxes when billing Non-Branded lenses.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
+            <h3 className="text-lg sm:text-xl font-black text-near-black mb-2">New Lens Add-on</h3>
+            <p className="text-xs sm:text-sm text-gray-500 mb-5 sm:mb-6 font-medium">Add-ons appear as checkboxes when billing Non-Branded lenses.</p>
             <form onSubmit={e => {
               e.preventDefault()
               const fd = new FormData(e.target as HTMLFormElement)
@@ -435,13 +435,13 @@ export default function Inventory() {
               <button className="w-full bg-choc-brown text-white py-3 rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2 mt-4"><Plus size={18} /> Save Add-on</button>
             </form>
           </div>
-          <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
-             <div className="p-6 border-b border-[#F3F4F6] flex justify-between items-center bg-[#FBFAF6]">
-              <h3 className="font-black text-near-black">Existing Add-ons</h3>
+           <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
+             <div className="p-4 sm:p-6 border-b border-[#F3F4F6] flex justify-between items-center bg-[#FBFAF6]">
+              <h3 className="text-sm sm:text-base font-black text-near-black">Existing Add-ons</h3>
               <span className="text-xs font-bold text-gray-500">{addons.length} items</span>
             </div>
             <div className="overflow-y-auto flex-1 p-0">
-              <table className="w-full text-left text-sm text-[#374151]">
+              <table className="w-full min-w-[420px] text-left text-xs sm:text-sm text-[#374151]">
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
                   <tr>
                     <th className="p-4 font-black">Name</th>
@@ -452,9 +452,9 @@ export default function Inventory() {
                 <tbody className="divide-y divide-[#F3F4F6]">
                   {addons.map(a => (
                     <tr key={a.id} className="hover:bg-[#F9FAFB]">
-                      <td className="p-4 font-bold text-near-black">{a.name}</td>
-                      <td className="p-4 font-bold">{formatCurrency(a.price)}</td>
-                      <td className="p-4 text-right">
+                      <td className="p-3 sm:p-4 font-bold text-near-black">{a.name}</td>
+                      <td className="p-3 sm:p-4 font-bold">{formatCurrency(a.price)}</td>
+                      <td className="p-3 sm:p-4 text-right">
                         <button onClick={() => supabase.from('lens_addons').delete().eq('id', a.id).then(fetchData)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                       </td>
                     </tr>
@@ -468,12 +468,12 @@ export default function Inventory() {
       )}
 
       {activeTab === 'categories' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-warm-beige/60">
-            <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-warm-beige/60">
+            <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6">
               <div>
-                <h3 className="text-xl font-black text-near-black">{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Choose whether billing uses a catalog item or free text.</p>
+                <h3 className="text-lg sm:text-xl font-black text-near-black">{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Choose whether billing uses a catalog item or free text.</p>
               </div>
               {editingCategory && (
                 <button
@@ -483,7 +483,7 @@ export default function Inventory() {
                 >Cancel</button>
               )}
             </div>
-            <form onSubmit={handleSaveCategory} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 items-end">
+            <form onSubmit={handleSaveCategory} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 sm:gap-4 items-stretch md:items-end">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category Name</label>
                 <input
@@ -494,7 +494,7 @@ export default function Inventory() {
                   className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold"
                 />
               </div>
-              <label className="flex items-center gap-2 h-12 px-4 border border-[#D8D0C5] rounded-xl cursor-pointer whitespace-nowrap">
+              <label className="flex items-center gap-2 min-h-12 px-4 border border-[#D8D0C5] rounded-xl cursor-pointer whitespace-nowrap">
                 <input
                   type="checkbox"
                   checked={categoryForm.is_manual_entry}
@@ -503,15 +503,16 @@ export default function Inventory() {
                 />
                 <span className="text-sm font-bold text-near-black">Manual entry</span>
               </label>
-              <button type="submit" className="h-12 px-6 bg-choc-brown text-white rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2">
+              <button type="submit" className="min-h-12 px-5 sm:px-6 bg-choc-brown text-white rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2 text-sm">
                 <Plus size={18} /> {editingCategory ? 'Update Category' : 'Add Category'}
               </button>
             </form>
             {categoryError && <p className="mt-3 text-sm font-bold text-red-600">{categoryError}</p>}
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
-          <table className="w-full text-left text-sm text-[#374151]">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[620px] text-left text-xs sm:text-sm text-[#374151]">
             <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
               <tr>
                 <th className="p-4 font-black">Category</th>
@@ -558,6 +559,7 @@ export default function Inventory() {
               ))}
             </tbody>
           </table>
+          </div>
           </div>
         </div>
       )}

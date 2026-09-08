@@ -61,8 +61,8 @@ function InventoryAnalytics() {
         <h3 className="text-xl font-black text-near-black">Recent Items Sold</h3>
       </div>
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-[#374151]">
+        <div className="w-full overflow-hidden">
+          <table className="w-full table-fixed text-left text-sm text-[#374151]">
             <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#F3F4F6]">
               <tr>
                 <th className="p-4 font-black">Item</th>
@@ -74,10 +74,10 @@ function InventoryAnalytics() {
             <tbody>
               {itemsSold.map((item, i) => (
                 <tr key={i} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                  <td className="p-4 font-bold text-near-black">{item.product_name}</td>
+                  <td className="p-4 font-bold text-near-black break-words">{item.product_name}</td>
                   <td className="p-4">{item.quantity}</td>
                   <td className="p-4 font-bold text-near-black">{formatCurrency(item.line_total)}</td>
-                  <td className="p-4 text-xs text-gray-500">{new Date(item.created_at).toLocaleString()}</td>
+                  <td className="p-4 text-xs text-gray-500 break-words">{new Date(item.created_at).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

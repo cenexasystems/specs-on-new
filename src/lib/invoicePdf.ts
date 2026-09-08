@@ -106,41 +106,6 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   }
   y += customerBoxHeight + 9
 
-  if (data.remarks?.trim()) {
-    doc.setFillColor('#f8fafc')
-    doc.roundedRect(left, y, right - left, 12, 2, 2, 'F')
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(muted)
-    doc.text('REMARKS', left + 5, y + 5)
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(ink)
-    doc.text(doc.splitTextToSize(data.remarks.trim(), 155) as string[], left + 5, y + 9)
-    y += 16
-  }
-
-  if (data.eyePrescription && hasPrescriptionValues(data.eyePrescription)) {
-    doc.setFillColor('#eef2f3')
-    doc.roundedRect(left, y, right - left, 8, 2, 2, 'F')
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(primaryColor)
-    doc.text('EYE PRESCRIPTION', left + 5, y + 5)
-    y += 12
-    const rows = [
-      ['Vision', 'OD SPH', 'OD CYL', 'OD AXIS', 'OD Vn', 'OS SPH', 'OS CYL', 'OS AXIS', 'OS Vn', 'PD', 'Lens'],
-      ['Distance', data.eyePrescription.distance.od.sph, data.eyePrescription.distance.od.cyl, data.eyePrescription.distance.od.axis, data.eyePrescription.distance.od.vn, data.eyePrescription.distance.os.sph, data.eyePrescription.distance.os.cyl, data.eyePrescription.distance.os.axis, data.eyePrescription.distance.os.vn, data.eyePrescription.distance.pd, data.eyePrescription.distance.lensType],
-      ['Near', data.eyePrescription.near.od.sph, data.eyePrescription.near.od.cyl, data.eyePrescription.near.od.axis, data.eyePrescription.near.od.vn, data.eyePrescription.near.os.sph, data.eyePrescription.near.os.cyl, data.eyePrescription.near.os.axis, data.eyePrescription.near.os.vn, data.eyePrescription.near.pd, data.eyePrescription.near.lensType],
-    ]
-    const columnWidth = (right - left) / rows[0].length
-    rows.forEach((row, index) => {
-      row.forEach((value, column) => {
-        doc.setFillColor(index === 0 ? '#f8fafb' : '#ffffff')
-        doc.rect(left + column * columnWidth, y, columnWidth, 7, 'F')
-        doc.setDrawColor('#d8dde2'); doc.rect(left + column * columnWidth, y, columnWidth, 7)
-        doc.setFont('helvetica', index === 0 || column === 0 ? 'bold' : 'normal'); doc.setFontSize(5.5); doc.setTextColor(ink)
-        doc.text(String(value || '-'), left + column * columnWidth + columnWidth / 2, y + 4.5, { align: 'center', maxWidth: columnWidth - 1 })
-      })
-      y += 7
-    })
-    y += 5
-  }
-
   doc.setFillColor(primaryColor)
   doc.rect(left, y, right - left, 9, 'F')
   doc.setFont('helvetica', 'bold')
@@ -176,6 +141,42 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
     doc.setDrawColor('#e8eaed')
     doc.line(left, y - 3, right, y - 3)
   })
+
+  if (data.remarks?.trim()) {
+    doc.setFillColor('#f8fafc')
+    doc.roundedRect(left, y + 3, right - left, 12, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(muted)
+    doc.text('REMARKS', left + 5, y + 8)
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(ink)
+    doc.text(doc.splitTextToSize(data.remarks.trim(), 155) as string[], left + 5, y + 12)
+    y += 16
+  }
+
+  if (data.eyePrescription && hasPrescriptionValues(data.eyePrescription)) {
+    y += 3
+    doc.setFillColor('#eef2f3')
+    doc.roundedRect(left, y, right - left, 8, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(primaryColor)
+    doc.text('EYE PRESCRIPTION', left + 5, y + 5)
+    y += 12
+    const rows = [
+      ['Vision', 'OD SPH', 'OD CYL', 'OD AXIS', 'OD Vn', 'OS SPH', 'OS CYL', 'OS AXIS', 'OS Vn', 'PD', 'Lens'],
+      ['Distance', data.eyePrescription.distance.od.sph, data.eyePrescription.distance.od.cyl, data.eyePrescription.distance.od.axis, data.eyePrescription.distance.od.vn, data.eyePrescription.distance.os.sph, data.eyePrescription.distance.os.cyl, data.eyePrescription.distance.os.axis, data.eyePrescription.distance.os.vn, data.eyePrescription.distance.pd, data.eyePrescription.distance.lensType],
+      ['Near', data.eyePrescription.near.od.sph, data.eyePrescription.near.od.cyl, data.eyePrescription.near.od.axis, data.eyePrescription.near.od.vn, data.eyePrescription.near.os.sph, data.eyePrescription.near.os.cyl, data.eyePrescription.near.os.axis, data.eyePrescription.near.os.vn, data.eyePrescription.near.pd, data.eyePrescription.near.lensType],
+    ]
+    const columnWidth = (right - left) / rows[0].length
+    rows.forEach((row, index) => {
+      row.forEach((value, column) => {
+        doc.setFillColor(index === 0 ? '#f8fafb' : '#ffffff')
+        doc.rect(left + column * columnWidth, y, columnWidth, 7, 'F')
+        doc.setDrawColor('#d8dde2'); doc.rect(left + column * columnWidth, y, columnWidth, 7)
+        doc.setFont('helvetica', index === 0 || column === 0 ? 'bold' : 'normal'); doc.setFontSize(5.5); doc.setTextColor(ink)
+        doc.text(String(value || '-'), left + column * columnWidth + columnWidth / 2, y + 4.5, { align: 'center', maxWidth: columnWidth - 1 })
+      })
+      y += 7
+    })
+    y += 5
+  }
 
   y = Math.max(y + 6, 150)
   const rows: Array<[string, string, string]> = [['Subtotal', money(data.subtotal), ink]]

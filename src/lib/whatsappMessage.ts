@@ -104,26 +104,26 @@ export const buildProfessionalWhatsAppMessage = (input: BuildWhatsAppMessageInpu
   const totalsText = totalsLines.join('\n')
   const filledPrescription = input.eyePrescription && hasEyePrescriptionValues(input.eyePrescription) ? input.eyePrescription : null
   const prescriptionText = filledPrescription
-    ? `\n👓 *EYE PRESCRIPTION*\nDistance: OD ${filledPrescription.distance.od.sph || '-'} / ${filledPrescription.distance.od.cyl || '-'} / ${filledPrescription.distance.od.axis || '-'} / Vn ${filledPrescription.distance.od.vn || '-'} | OS ${filledPrescription.distance.os.sph || '-'} / ${filledPrescription.distance.os.cyl || '-'} / ${filledPrescription.distance.os.axis || '-'} / Vn ${filledPrescription.distance.os.vn || '-'} | PD ${filledPrescription.distance.pd || '-'} | Lens ${filledPrescription.distance.lensType || '-'}\nNear: OD ${filledPrescription.near.od.sph || '-'} / ${filledPrescription.near.od.cyl || '-'} / ${filledPrescription.near.od.axis || '-'} / Vn ${filledPrescription.near.od.vn || '-'} | OS ${filledPrescription.near.os.sph || '-'} / ${filledPrescription.near.os.cyl || '-'} / ${filledPrescription.near.os.axis || '-'} / Vn ${filledPrescription.near.os.vn || '-'} | PD ${filledPrescription.near.pd || '-'} | Lens ${filledPrescription.near.lensType || '-'}`
+    ? '\nEye prescription details are included in the invoice. Please check the invoice for the complete prescription.\n'
     : ''
-  const remarksText = input.remarks?.trim() ? `\n📝 *REMARKS:* ${input.remarks.trim()}` : ''
+  const remarksText = input.remarks?.trim() ? `\n*Remarks:* ${input.remarks.trim()}` : ''
 
-  return `✨ *Specson* ✨
-🧵 *Official Purchase Invoice & Receipt* 🧵
+  return `*Specson*
+*Official Purchase Invoice & Receipt*
 
 Dear ${customerName},
 
 Thank you for shopping with Specson! We truly appreciate your order.
 
-🧾 *INVOICE DETAILS*
-📌 *Invoice No:* #${formattedNo}
-${input.invoiceDate ? `📅 *Date:* ${new Date(input.invoiceDate).toLocaleDateString('en-IN')}\n` : ''}${input.paymentMode ? `💳 *Payment Mode:* ${input.paymentMode}\n` : ''}
-${itemsText ? `📦 *ITEMS ORDERED:*\n${itemsText}\n\n${totalsText}\n` : input.total !== undefined ? `💰 *Total Amount:* ₹ ${total.toFixed(2)}\n` : ''}
+*INVOICE DETAILS*
+*Invoice No:* #${formattedNo}
+${input.invoiceDate ? `*Date:* ${new Date(input.invoiceDate).toLocaleDateString('en-IN')}\n` : ''}${input.paymentMode ? `*Payment Mode:* ${input.paymentMode}\n` : ''}
+${itemsText ? `*ITEMS ORDERED:*\n${itemsText}\n\n${totalsText}\n` : input.total !== undefined ? `*Total Amount:* ₹ ${total.toFixed(2)}\n` : ''}
 ${prescriptionText}${remarksText}
-📄 *View & Download Digital Invoice / PDF:*
-👉 ${invoiceUrl}
+*View & Download Digital Invoice / PDF:*
+${invoiceUrl}
 
-🙏 Thank you, and we hope to see you again soon!
+Thank you, and we hope to see you again soon!
 
 Follow us on Instagram:
 https://www.instagram.com/specson`

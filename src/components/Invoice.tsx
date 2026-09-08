@@ -152,26 +152,6 @@ export const Invoice: React.FC<InvoiceProps> = ({
         </div>
       </div>
 
-      {(showRemarks || showPrescription) && (
-        <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {showRemarks && (
-            <div style={{ padding: '10px 12px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Remarks</div>
-              <div style={{ fontSize: 11, color: '#374151', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{remarks?.trim()}</div>
-            </div>
-          )}
-          {showPrescription && eyePrescription && (
-            <div style={{ border: '1px solid #d8dde2', borderRadius: 8, overflow: 'hidden' }}>
-              <div style={{ padding: '8px 10px', background: '#eef2f3', fontSize: 9, fontWeight: 800, color: '#3B261B', textTransform: 'uppercase', letterSpacing: 1 }}>Eye Prescription</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
-                <thead><tr style={{ background: '#f8fafb' }}>{['Vision', 'OD SPH', 'OD CYL', 'OD AXIS', 'OD Vn', 'OS SPH', 'OS CYL', 'OS AXIS', 'OS Vn', 'PD', 'Lens'].map(label => <th key={label} style={{ padding: '5px 4px', border: '1px solid #d8dde2', textAlign: 'center', fontWeight: 800 }}>{label}</th>)}</tr></thead>
-                <tbody>{(['distance', 'near'] as const).map(row => <tr key={row}><td style={{ padding: '6px 4px', border: '1px solid #d8dde2', fontWeight: 800, textTransform: 'uppercase' }}>{row}</td>{(['sph', 'cyl', 'axis', 'vn'] as const).map(field => <td key={`od-${field}`} style={{ padding: '6px 4px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].od[field] || '-'}</td>)}{(['sph', 'cyl', 'axis', 'vn'] as const).map(field => <td key={`os-${field}`} style={{ padding: '6px 4px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].os[field] || '-'}</td>)}<td style={{ padding: '6px 4px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].pd || '-'}</td><td style={{ padding: '6px 4px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].lensType || '-'}</td></tr>)}</tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* ── DIVIDER ──────────────────────────────────────────────── */}
       <div style={{ borderTop: '1px dashed #d0d0d0', marginBottom: 20 }} />
 
@@ -213,6 +193,26 @@ export const Invoice: React.FC<InvoiceProps> = ({
           </tbody>
         </table>
       </div>
+
+      {(showRemarks || showPrescription) && (
+        <div style={{ marginTop: 16, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {showRemarks && (
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 }}>Remarks</div>
+              <div style={{ fontSize: 10, color: '#374151', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{remarks?.trim()}</div>
+            </div>
+          )}
+          {showPrescription && eyePrescription && (
+            <div style={{ border: '1px solid #d8dde2', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ padding: '6px 8px', background: '#eef2f3', fontSize: 8, fontWeight: 800, color: '#3B261B', textTransform: 'uppercase', letterSpacing: 1 }}>Eye Prescription</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 8 }}>
+                <thead><tr style={{ background: '#f8fafb' }}>{['Vision', 'OD SPH', 'OD CYL', 'OD AXIS', 'OD Vn', 'OS SPH', 'OS CYL', 'OS AXIS', 'OS Vn', 'PD', 'Lens'].map(label => <th key={label} style={{ padding: '3px 2px', border: '1px solid #d8dde2', textAlign: 'center', fontWeight: 800 }}>{label}</th>)}</tr></thead>
+                <tbody>{(['distance', 'near'] as const).map(row => <tr key={row}><td style={{ padding: '4px 2px', border: '1px solid #d8dde2', fontWeight: 800, textTransform: 'uppercase' }}>{row}</td>{(['sph', 'cyl', 'axis', 'vn'] as const).map(field => <td key={`od-${field}`} style={{ padding: '4px 2px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].od[field] || '-'}</td>)}{(['sph', 'cyl', 'axis', 'vn'] as const).map(field => <td key={`os-${field}`} style={{ padding: '4px 2px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].os[field] || '-'}</td>)}<td style={{ padding: '4px 2px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].pd || '-'}</td><td style={{ padding: '4px 2px', border: '1px solid #d8dde2', textAlign: 'center' }}>{eyePrescription[row].lensType || '-'}</td></tr>)}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── TOTALS ───────────────────────────────────────────────── */}
       <div style={{ marginTop: 24, borderTop: '2px solid #3B261B', paddingTop: 16 }}>

@@ -71,6 +71,31 @@ type InvoiceSnap = {
   paymentMode: string
   paymentMethod?: string
   invoicePdfUrl?: string
+  remarks?: string
+  eyePrescription?: EyePrescription
+}
+
+type EyePrescriptionRow = {
+  sph: string
+  cyl: string
+  axis: string
+  vn: string
+}
+
+type EyePrescription = {
+  distance: { od: EyePrescriptionRow; os: EyePrescriptionRow; pd: string; lensType: string }
+  near: { od: EyePrescriptionRow; os: EyePrescriptionRow; pd: string; lensType: string }
+}
+
+const emptyPrescriptionRow = (): EyePrescriptionRow => ({ sph: '', cyl: '', axis: '', vn: '' })
+const emptyEyePrescription = (): EyePrescription => ({
+  distance: { od: emptyPrescriptionRow(), os: emptyPrescriptionRow(), pd: '', lensType: '' },
+  near: { od: emptyPrescriptionRow(), os: emptyPrescriptionRow(), pd: '', lensType: '' },
+})
+const hasEyePrescriptionValues = (value: unknown): boolean => {
+  if (typeof value === 'string') return value.trim().length > 0
+  if (!value || typeof value !== 'object') return false
+  return Object.values(value).some(hasEyePrescriptionValues)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -133,6 +158,8 @@ export default function Pos(props: PosProps = {}) {
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' })
   const [remarks, setRemarks] = useState('')
   const [referenceNumber, setReferenceNumber] = useState('')
+  const [eyePrescription, setEyePrescription] = useState<EyePrescription>(emptyEyePrescription)
+  const [eyePrescriptionOpen, setEyePrescriptionOpen] = useState(false)
   const [billingDate, setBillingDate] = useState('') // '' = use current date/time
   const [paymentType, setPaymentType] = useState<string>('Cash')
   const [saving, setSaving] = useState(false)
@@ -357,6 +384,18 @@ export default function Pos(props: PosProps = {}) {
     })
   }
 
+  const updateEyePrescription = (
+    row: 'distance' | 'near',
+    eye: 'od' | 'os',
+    field: 'sph' | 'cyl' | 'axis' | 'vn',
+    value: string,
+  ) => {
+    setEyePrescription(current => ({
+      ...current,
+      [row]: { ...current[row], [eye]: { ...current[row][eye], [field]: value } },
+    }))
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setQty = (id: string | number, val: number) => {
     if (val <= 0) { removeItem(id); return }
@@ -377,6 +416,8 @@ export default function Pos(props: PosProps = {}) {
     setShipping('0')
     setRemarks('')
     setReferenceNumber('')
+    setEyePrescription(emptyEyePrescription())
+    setEyePrescriptionOpen(false)
     setBillingDate('')
     setBillGstEnabled(false)
     setGstInput('')
@@ -565,6 +606,7 @@ export default function Pos(props: PosProps = {}) {
         delivery_charge: Number(shipping || 0),
         remarks: remarks.trim(),
         reference_number: referenceNumber.trim(),
+        eye_prescription: eyePrescription,
         billing_date: effectiveBillingDate,
       }).eq('id', created.orderId)
       const createdInvoice: InvoiceSnap = {
@@ -589,6 +631,8 @@ export default function Pos(props: PosProps = {}) {
         balanceReturned: balanceToReturn,
         paymentMode: ordermode === 'online' ? 'Online' : paymentType,
         paymentMethod: paymentMode,
+        remarks: remarks.trim(),
+        eyePrescription,
       }
       setInvoice(createdInvoice)
       // Low stock check — show visual alert banner + sound
@@ -650,6 +694,8 @@ export default function Pos(props: PosProps = {}) {
       shipping: inv.shipping,
       gstAmount: inv.gstAmount,
       total: inv.total,
+      remarks: inv.remarks,
+      eyePrescription: inv.eyePrescription,
     })
     window.open(toWhatsAppUrl(inv.phone || customer.phone || '', message), '_blank', 'noopener,noreferrer')
   }
@@ -960,7 +1006,7 @@ export default function Pos(props: PosProps = {}) {
                 />
               </div>
               <div>
-                <label className="block text-[13px] md:text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Remarks (Internal)</label>
+                <label className="block text-[13px] md:text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Remarks</label>
                 <input
                   type="text"
                   value={remarks}
@@ -989,6 +1035,17 @@ export default function Pos(props: PosProps = {}) {
                   className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111]"
                 />
                 <p className="mt-1 text-[10px] text-gray-400 font-medium">Leave blank to use today's date &amp; time</p>
+              </div>
+              <div>
+                <label className="block text-[13px] md:text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Eye Prescription (Optional)</label>
+                <button
+                  type="button"
+                  onClick={() => setEyePrescriptionOpen(true)}
+                  className="flex h-12 w-full items-center justify-between rounded-xl border border-[#3B261B]/50 bg-[#FFFDFC] px-4 text-left text-[13px] font-black text-[#3B261B] hover:bg-[#3B261B]/5"
+                >
+                  <span>{hasEyePrescriptionValues(eyePrescription) ? 'Edit prescription' : 'Add prescription'}</span>
+                  <span className="text-[11px] font-bold text-gray-400">Optional</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1546,6 +1603,54 @@ export default function Pos(props: PosProps = {}) {
           onClose={() => setAddProductOpen(false)}
           onSuccess={() => {}}
         />
+      )}
+
+      {eyePrescriptionOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4">
+          <div className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl md:p-6">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-black text-[#111111]">Eye Prescription</h3>
+                <p className="mt-1 text-xs font-medium text-gray-500">Optional prescription details for this invoice.</p>
+              </div>
+              <button type="button" onClick={() => setEyePrescriptionOpen(false)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="Close eye prescription"><X size={20} /></button>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-[#D8DDE2]">
+              <table className="min-w-[760px] w-full border-collapse text-[11px]">
+                <thead className="bg-[#EEF2F3] text-[#111111]">
+                  <tr>
+                    <th rowSpan={2} className="border border-[#D8DDE2] px-3 py-3 text-left">VISION</th>
+                    <th colSpan={4} className="border border-[#D8DDE2] px-2 py-2">RIGHT EYE (OD)</th>
+                    <th colSpan={4} className="border border-[#D8DDE2] px-2 py-2">LEFT EYE (OS)</th>
+                    <th rowSpan={2} className="border border-[#D8DDE2] px-2 py-2">PD</th>
+                    <th rowSpan={2} className="border border-[#D8DDE2] px-2 py-2">LENS TYPE</th>
+                  </tr>
+                  <tr>
+                    {['SPH', 'CYL', 'AXIS', 'Vn', 'SPH', 'CYL', 'AXIS', 'Vn'].map(header => <th key={header} className="border border-[#D8DDE2] px-2 py-2">{header}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(['distance', 'near'] as const).map(row => (
+                    <tr key={row}>
+                      <th className="border border-[#D8DDE2] bg-[#F8FAFA] px-3 py-3 text-left uppercase">{row}</th>
+                      {(['od', 'os'] as const).flatMap(eye => (['sph', 'cyl', 'axis', 'vn'] as const).map(field => (
+                        <td key={`${eye}-${field}`} className="border border-[#D8DDE2] p-1">
+                          <input aria-label={`${row} ${eye} ${field}`} value={eyePrescription[row][eye][field]} onChange={event => updateEyePrescription(row, eye, field, event.target.value)} className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]" />
+                        </td>
+                      )))}
+                      <td className="border border-[#D8DDE2] p-1"><input aria-label={`${row} PD`} value={eyePrescription[row].pd} onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], pd: event.target.value } }))} className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]" /></td>
+                      <td className="border border-[#D8DDE2] p-1"><input aria-label={`${row} lens type`} value={eyePrescription[row].lensType} onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], lensType: event.target.value } }))} className="h-9 w-full min-w-[100px] rounded border border-[#D8DDE2] px-2 font-bold outline-none focus:border-[#3B261B]" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setEyePrescription(emptyEyePrescription())} className="rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-black text-gray-600 hover:bg-gray-50">Clear</button>
+              <button type="button" onClick={() => setEyePrescriptionOpen(false)} className="rounded-xl bg-[#3B261B] px-5 py-2.5 text-xs font-black text-white hover:bg-[#1A1410]">Done</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -23,6 +23,23 @@ export type BuildWhatsAppMessageInput = {
   shipping?: number
   gstAmount?: number
   total?: number
+  remarks?: string
+  eyePrescription?: {
+    distance: EyePrescriptionMessageRow
+    near: EyePrescriptionMessageRow
+  }
+}
+
+type EyePrescriptionMessageRow = {
+  od: { sph: string; cyl: string; axis: string; vn: string }
+  os: { sph: string; cyl: string; axis: string; vn: string }
+  pd: string
+  lensType: string
+}
+const hasEyePrescriptionValues = (value: unknown): boolean => {
+  if (typeof value === 'string') return value.trim().length > 0
+  if (!value || typeof value !== 'object') return false
+  return Object.values(value).some(hasEyePrescriptionValues)
 }
 
 export type AdvanceDepositWhatsAppInput = {
@@ -85,6 +102,11 @@ export const buildProfessionalWhatsAppMessage = (input: BuildWhatsAppMessageInpu
   }
 
   const totalsText = totalsLines.join('\n')
+  const filledPrescription = input.eyePrescription && hasEyePrescriptionValues(input.eyePrescription) ? input.eyePrescription : null
+  const prescriptionText = filledPrescription
+    ? `\n👓 *EYE PRESCRIPTION*\nDistance: OD ${filledPrescription.distance.od.sph || '-'} / ${filledPrescription.distance.od.cyl || '-'} / ${filledPrescription.distance.od.axis || '-'} / Vn ${filledPrescription.distance.od.vn || '-'} | OS ${filledPrescription.distance.os.sph || '-'} / ${filledPrescription.distance.os.cyl || '-'} / ${filledPrescription.distance.os.axis || '-'} / Vn ${filledPrescription.distance.os.vn || '-'} | PD ${filledPrescription.distance.pd || '-'} | Lens ${filledPrescription.distance.lensType || '-'}\nNear: OD ${filledPrescription.near.od.sph || '-'} / ${filledPrescription.near.od.cyl || '-'} / ${filledPrescription.near.od.axis || '-'} / Vn ${filledPrescription.near.od.vn || '-'} | OS ${filledPrescription.near.os.sph || '-'} / ${filledPrescription.near.os.cyl || '-'} / ${filledPrescription.near.os.axis || '-'} / Vn ${filledPrescription.near.os.vn || '-'} | PD ${filledPrescription.near.pd || '-'} | Lens ${filledPrescription.near.lensType || '-'}`
+    : ''
+  const remarksText = input.remarks?.trim() ? `\n📝 *REMARKS:* ${input.remarks.trim()}` : ''
 
   return `✨ *Specson* ✨
 🧵 *Official Purchase Invoice & Receipt* 🧵
@@ -97,6 +119,7 @@ Thank you for shopping with Specson! We truly appreciate your order.
 📌 *Invoice No:* #${formattedNo}
 ${input.invoiceDate ? `📅 *Date:* ${new Date(input.invoiceDate).toLocaleDateString('en-IN')}\n` : ''}${input.paymentMode ? `💳 *Payment Mode:* ${input.paymentMode}\n` : ''}
 ${itemsText ? `📦 *ITEMS ORDERED:*\n${itemsText}\n\n${totalsText}\n` : input.total !== undefined ? `💰 *Total Amount:* ₹ ${total.toFixed(2)}\n` : ''}
+${prescriptionText}${remarksText}
 📄 *View & Download Digital Invoice / PDF:*
 👉 ${invoiceUrl}
 

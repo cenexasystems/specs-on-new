@@ -157,6 +157,8 @@ export default function DigitalInvoice() {
       gstAmount: invoice.total_gst || invoice.gst_amount || 0,
       total: invoice.total,
       paymentMode: invoice.payment_mode || invoice.payment_method,
+      remarks: invoice.remarks,
+      eyePrescription: invoice.eye_prescription,
     })
 
     const file = invoiceElementRef.current

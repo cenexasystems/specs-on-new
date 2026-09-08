@@ -255,10 +255,10 @@ export default function Inventory() {
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div className="space-y-4 sm:space-y-6 min-h-screen pb-16">
+    <div className="space-y-4 min-h-screen pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-near-black">Catalog & Inventory</h1>
+          <h1 className="text-2xl font-black tracking-tight text-near-black">Catalog & Inventory</h1>
           <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-1">Manage pricing tiers and manual categories</p>
         </div>
       </div>
@@ -282,19 +282,19 @@ export default function Inventory() {
       </div>
 
       {activeTab === 'catalog' && (
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Catalog Items</p>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{products.length}</p>
+              <p className="mt-2 text-2xl font-black text-near-black">{products.length}</p>
             </div>
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Categories</p>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{categories.length}</p>
+              <p className="mt-2 text-2xl font-black text-near-black">{categories.length}</p>
             </div>
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-warm-beige/60">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-warm-beige/60">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Manual-Entry Types</p>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-near-black">{categories.filter(c => c.is_manual_entry).length}</p>
+              <p className="mt-2 text-2xl font-black text-near-black">{categories.filter(c => c.is_manual_entry).length}</p>
             </div>
           </div>
 
@@ -303,8 +303,8 @@ export default function Inventory() {
               <Search className="text-gray-400" size={20} />
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-0 sm:min-w-[560px] text-left text-xs sm:text-sm text-[#374151]">
+            <div className="overflow-x-auto sm:overflow-x-visible">
+              <table className="w-full min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                   <tr>
                     <th className="p-4 font-black">Product</th>
@@ -317,13 +317,13 @@ export default function Inventory() {
                 <tbody>
                   {filteredProducts.map(p => (
                     <tr key={p.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                      <td className="p-3 sm:p-4 font-bold text-near-black">{p.name}</td>
-                      <td className="hidden sm:table-cell p-3 sm:p-4"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
-                      <td className="hidden sm:table-cell p-3 sm:p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
-                      <td className="p-3 sm:p-4 font-bold text-near-black">
+                      <td className="p-3 font-bold text-near-black break-words">{p.name}</td>
+                      <td className="hidden sm:table-cell p-3"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown break-words">{p.category}</span></td>
+                      <td className="hidden sm:table-cell p-3 text-gray-500 font-semibold break-words">{p.lens_type || '-'}</td>
+                      <td className="p-3 font-bold text-near-black break-words">
                         {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
                       </td>
-                      <td className="p-3 sm:p-4 text-right">
+                      <td className="p-3 text-right whitespace-nowrap">
                         <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
                         <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                       </td>
@@ -378,9 +378,9 @@ export default function Inventory() {
               <h3 className="text-sm sm:text-base font-black text-near-black truncate">Items in {form.category || 'Selected Category'}</h3>
               <span className="text-xs font-bold text-gray-500">{products.filter(p => form.category ? p.category === form.category : true).length} items</span>
             </div>
-            <div className="overflow-y-auto flex-1 p-0">
+            <div className="overflow-x-auto sm:overflow-x-visible overflow-y-auto flex-1 p-0">
               {form.category ? (
-                <table className="w-full min-w-[500px] text-left text-xs sm:text-sm text-[#374151]">
+                <table className="w-full min-w-[500px] sm:min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
                   <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
                     <tr>
                       <th className="p-4 font-black">Name</th>
@@ -440,8 +440,8 @@ export default function Inventory() {
               <h3 className="text-sm sm:text-base font-black text-near-black">Existing Add-ons</h3>
               <span className="text-xs font-bold text-gray-500">{addons.length} items</span>
             </div>
-            <div className="overflow-y-auto flex-1 p-0">
-              <table className="w-full min-w-[420px] text-left text-xs sm:text-sm text-[#374151]">
+            <div className="overflow-x-auto sm:overflow-x-visible overflow-y-auto flex-1 p-0">
+              <table className="w-full min-w-[420px] sm:min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] sticky top-0 shadow-sm">
                   <tr>
                     <th className="p-4 font-black">Name</th>
@@ -511,8 +511,8 @@ export default function Inventory() {
           </div>
 
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full min-w-[620px] text-left text-xs sm:text-sm text-[#374151]">
+          <div className="overflow-x-auto sm:overflow-x-visible">
+          <table className="w-full min-w-[620px] sm:min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
             <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
               <tr>
                 <th className="p-4 font-black">Category</th>

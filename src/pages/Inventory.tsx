@@ -304,12 +304,12 @@ export default function Inventory() {
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left text-xs sm:text-sm text-[#374151]">
+              <table className="w-full min-w-0 sm:min-w-[560px] text-left text-xs sm:text-sm text-[#374151]">
                 <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                   <tr>
                     <th className="p-4 font-black">Product</th>
-                    <th className="p-4 font-black">Category</th>
-                    <th className="p-4 font-black">Type / Tier</th>
+                    <th className="hidden sm:table-cell p-4 font-black">Category</th>
+                    <th className="hidden sm:table-cell p-4 font-black">Type / Tier</th>
                     <th className="p-4 font-black">Price</th>
                     <th className="p-4 font-black text-right">Actions</th>
                   </tr>
@@ -318,8 +318,8 @@ export default function Inventory() {
                   {filteredProducts.map(p => (
                     <tr key={p.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
                       <td className="p-3 sm:p-4 font-bold text-near-black">{p.name}</td>
-                      <td className="p-3 sm:p-4"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
-                      <td className="p-3 sm:p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
+                      <td className="hidden sm:table-cell p-3 sm:p-4"><span className="px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></td>
+                      <td className="hidden sm:table-cell p-3 sm:p-4 text-gray-500 font-semibold">{p.lens_type || '-'}</td>
                       <td className="p-3 sm:p-4 font-bold text-near-black">
                         {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
                       </td>

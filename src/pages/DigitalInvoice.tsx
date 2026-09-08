@@ -178,6 +178,8 @@ export default function DigitalInvoice() {
       gstAmount: Number(invoice.total_gst || invoice.gst_amount || 0),
       couponCode: invoice.coupon_code || undefined,
       paymentMode: invoice.payment_mode || invoice.payment_method || undefined,
+      remarks: invoice.remarks,
+      eyePrescription: invoice.eye_prescription,
       })
 
     let downloadLink = ''
@@ -270,6 +272,8 @@ export default function DigitalInvoice() {
             total={invoice.total > 0 ? invoice.total : (subtotal + (invoice.delivery_charge || 0) + (invoice.total_gst || invoice.gst_amount || 0) - (invoice.discount_amount || 0) - (invoice.manual_discount_amount || 0))}
             status={invoice.status}
             paymentMode={invoice.payment_mode || invoice.payment_method}
+            remarks={invoice.remarks}
+            eyePrescription={invoice.eye_prescription}
             onPrintReceipt={printReceipt}
           />
         </div>

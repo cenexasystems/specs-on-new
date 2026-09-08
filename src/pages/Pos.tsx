@@ -716,6 +716,8 @@ export default function Pos(props: PosProps = {}) {
         gstAmount: inv.gstAmount,
         couponCode: inv.couponCode,
         paymentMode: inv.paymentMode,
+        remarks: inv.remarks,
+        eyePrescription: inv.eyePrescription,
         total: inv.total,
       })
       // Upload PDF and save its URL — total fields already saved immediately after RPC
@@ -883,6 +885,8 @@ export default function Pos(props: PosProps = {}) {
             manualDiscountAmount={invoice.manualDiscountAmount || 0}
             gstAmount={invoice.gstAmount || 0}
             couponCode={invoice.couponCode}
+            remarks={invoice.remarks}
+            eyePrescription={invoice.eyePrescription}
           />
         </div>
       </div>

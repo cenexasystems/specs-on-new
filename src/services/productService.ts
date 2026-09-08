@@ -9,7 +9,9 @@ const PRODUCT_COLUMNS = ['id', 'name', 'category', 'category_id', 'price', 'is_p
 export function fetchAllCategories() {
   return supabase
     .from('categories')
-    .select('id, name_en')
+    .select('id, name_en, name_ta, is_manual_entry, is_active, sort_order')
+    .eq('is_active', true)
+    .order('sort_order')
 }
 
 export function fetchAllProducts() {

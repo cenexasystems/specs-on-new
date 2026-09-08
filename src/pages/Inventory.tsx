@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Package, Search, Edit2, Plus, Trash2, Tag, Activity } from 'lucide-react'
+import { Package, Search, Edit2, Plus, Trash2, Tag, Activity, Power } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatCurrency } from '../lib/retail'
 import { useSound } from '../context/SoundContext'
@@ -18,6 +18,7 @@ interface Category {
   id: string | number
   name_en: string
   is_manual_entry: boolean
+  is_active: boolean
 }
 
 interface LensAddon {
@@ -107,7 +108,7 @@ export default function Inventory() {
     setLoading(true)
     const [pRes, cRes, aRes] = await Promise.all([
       supabase.from('products').select('id, name, category, price, is_price_editable, lens_type, is_active').order('name'),
-      supabase.from('categories').select('id, name_en, is_manual_entry').order('sort_order'),
+      supabase.from('categories').select('id, name_en, is_manual_entry, is_active').order('sort_order'),
       supabase.from('lens_addons').select('id, name, price').order('name')
     ])
     if (pRes.data) setProducts(pRes.data)
@@ -201,6 +202,53 @@ export default function Inventory() {
 
     setEditingCategory(null)
     setCategoryForm({ name_en: '', is_manual_entry: false })
+    await fetchData()
+  }
+
+  const handleToggleCategory = async (category: Category) => {
+    const { error } = await supabase
+      .from('categories')
+      .update({ is_active: !category.is_active })
+      .eq('id', category.id)
+    if (error) {
+      setCategoryError(error.message)
+      return
+    }
+    await fetchData()
+  }
+
+  const handleDeleteCategory = async (category: Category) => {
+    if (!window.confirm(`Delete "${category.name_en}"? Products in this category will become Uncategorized.`)) return
+
+    const { error: productError } = await supabase
+      .from('products')
+      .update({ category: 'Uncategorized', category_id: null })
+      .eq('category_id', category.id)
+    if (productError) {
+      setCategoryError(productError.message)
+      return
+    }
+
+    const { error: legacyProductError } = await supabase
+      .from('products')
+      .update({ category: 'Uncategorized', category_id: null })
+      .eq('category', category.name_en)
+    if (legacyProductError) {
+      setCategoryError(legacyProductError.message)
+      return
+    }
+
+    const { error } = await supabase.from('categories').delete().eq('id', category.id)
+    if (error) {
+      setCategoryError(error.message)
+      return
+    }
+
+    if (editingCategory?.id === category.id) {
+      setEditingCategory(null)
+      setCategoryForm({ name_en: '', is_manual_entry: false })
+    }
+    setCategoryError('')
     await fetchData()
   }
 
@@ -468,6 +516,7 @@ export default function Inventory() {
               <tr>
                 <th className="p-4 font-black">Category</th>
                 <th className="p-4 font-black">Entry Type</th>
+                <th className="p-4 font-black">Status</th>
                 <th className="p-4 font-black text-right">Actions</th>
               </tr>
             </thead>
@@ -480,6 +529,11 @@ export default function Inventory() {
                       ? <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-800">Manual Entry (Free Text)</span>
                       : <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-green-100 text-green-800">Catalog Selection</span>}
                   </td>
+                  <td className="p-4">
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${c.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {c.is_active ? 'Active in POS' : 'Disabled in POS'}
+                    </span>
+                  </td>
                   <td className="p-4 text-right">
                     <button
                       type="button"
@@ -487,6 +541,18 @@ export default function Inventory() {
                       onClick={() => { setEditingCategory(c); setCategoryForm({ name_en: c.name_en, is_manual_entry: c.is_manual_entry }); setCategoryError('') }}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                     ><Edit2 size={16} /></button>
+                    <button
+                      type="button"
+                      title={c.is_active ? 'Disable category in POS' : 'Enable category in POS'}
+                      onClick={() => handleToggleCategory(c)}
+                      className={`p-2 rounded-lg ${c.is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`}
+                    ><Power size={16} /></button>
+                    <button
+                      type="button"
+                      title="Delete category"
+                      onClick={() => handleDeleteCategory(c)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    ><Trash2 size={16} /></button>
                   </td>
                 </tr>
               ))}

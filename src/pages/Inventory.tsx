@@ -536,55 +536,65 @@ export default function Inventory() {
           </div>
 
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
-          <div className="overflow-x-auto sm:overflow-x-visible">
-          <table className="w-full min-w-[620px] sm:min-w-0 table-fixed text-left text-xs sm:text-sm text-[#374151]">
-            <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
-              <tr>
-                <th className="p-4 font-black">Category</th>
-                <th className="p-4 font-black">Entry Type</th>
-                <th className="p-4 font-black">Status</th>
-                <th className="p-4 font-black text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+            {/* Mobile card view */}
+            <div className="sm:hidden divide-y divide-[#F3F4F6]">
               {categories.map(c => (
-                <tr key={c.id} className="border-b border-[#F3F4F6]">
-                  <td className="p-4 font-bold text-near-black">{c.name_en}</td>
-                  <td className="p-4">
-                    {c.is_manual_entry 
-                      ? <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-800">Manual Entry (Free Text)</span>
-                      : <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-green-100 text-green-800">Catalog Selection</span>}
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${c.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                      {c.is_active ? 'Active in POS' : 'Disabled in POS'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <button
-                      type="button"
-                      title="Edit category"
-                      onClick={() => { setEditingCategory(c); setCategoryForm({ name_en: c.name_en, is_manual_entry: c.is_manual_entry }); setCategoryError('') }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                    ><Edit2 size={16} /></button>
-                    <button
-                      type="button"
-                      title={c.is_active ? 'Disable category in POS' : 'Enable category in POS'}
-                      onClick={() => handleToggleCategory(c)}
-                      className={`p-2 rounded-lg ${c.is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`}
-                    ><Power size={16} /></button>
-                    <button
-                      type="button"
-                      title="Delete category"
-                      onClick={() => handleDeleteCategory(c)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    ><Trash2 size={16} /></button>
-                  </td>
-                </tr>
+                <div key={c.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-near-black text-sm truncate">{c.name_en}</p>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      {c.is_manual_entry
+                        ? <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-blue-100 text-blue-800">Manual Entry</span>
+                        : <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-green-100 text-green-800">Catalog</span>}
+                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${c.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {c.is_active ? 'Active' : 'Disabled'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button type="button" title="Edit" onClick={() => { setEditingCategory(c); setCategoryForm({ name_en: c.name_en, is_manual_entry: c.is_manual_entry }); setCategoryError('') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={15} /></button>
+                    <button type="button" title={c.is_active ? 'Disable' : 'Enable'} onClick={() => handleToggleCategory(c)} className={`p-2 rounded-lg ${c.is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`}><Power size={15} /></button>
+                    <button type="button" title="Delete" onClick={() => handleDeleteCategory(c)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={15} /></button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-          </div>
+              {categories.length === 0 && <p className="p-6 text-center text-gray-400 text-sm italic">No categories yet.</p>}
+            </div>
+            {/* Desktop table view */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full table-fixed text-left text-sm text-[#374151]">
+                <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF]">
+                  <tr>
+                    <th className="p-4 font-black">Category</th>
+                    <th className="p-4 font-black">Entry Type</th>
+                    <th className="p-4 font-black">Status</th>
+                    <th className="p-4 font-black text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map(c => (
+                    <tr key={c.id} className="border-b border-[#F3F4F6]">
+                      <td className="p-4 font-bold text-near-black">{c.name_en}</td>
+                      <td className="p-4">
+                        {c.is_manual_entry
+                          ? <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-800">Manual Entry (Free Text)</span>
+                          : <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-green-100 text-green-800">Catalog Selection</span>}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${c.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                          {c.is_active ? 'Active in POS' : 'Disabled in POS'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button type="button" title="Edit category" onClick={() => { setEditingCategory(c); setCategoryForm({ name_en: c.name_en, is_manual_entry: c.is_manual_entry }); setCategoryError('') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
+                        <button type="button" title={c.is_active ? 'Disable category in POS' : 'Enable category in POS'} onClick={() => handleToggleCategory(c)} className={`p-2 rounded-lg ${c.is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}`}><Power size={16} /></button>
+                        <button type="button" title="Delete category" onClick={() => handleDeleteCategory(c)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

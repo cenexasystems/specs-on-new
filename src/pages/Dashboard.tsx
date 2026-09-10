@@ -42,8 +42,6 @@ import { formatCurrency, normalizeOrderMode, normalizeUnitType, toNumber, type U
 import { normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { Invoice } from '../components/Invoice'
 import Expenses from './Expenses'
-import Attendance from './Attendance'
-import StaffPunch from './StaffPunch'
 import Inventory from './Inventory'
 import { printThermalReceipt } from '../lib/thermalPrint'
 import { buildProfessionalWhatsAppMessage } from '../lib/whatsappMessage'
@@ -83,7 +81,7 @@ type DashboardCoupon = {
   usage_count: number
   min_order_value: number
 }
-type TabKey = 'overview' | 'whatsapp' | 'pos_analytics' | 'billing' | 'advance_orders' | 'coupons' | 'users' | 'history' | 'expenses' | 'attendance' | 'inventory'
+type TabKey = 'overview' | 'whatsapp' | 'pos_analytics' | 'billing' | 'advance_orders' | 'coupons' | 'users' | 'history' | 'expenses' | 'inventory'
 type PosAnalyticsTab = 'revenue' | 'today' | 'products' | 'categories' | 'coupons'
 type ProfileUser = { id: string; email: string; name: string; mobile: string; role: string; created_at: string }
 
@@ -1489,7 +1487,6 @@ export default function Dashboard() {
     { id: 'pos_analytics', icon: <BarChart2 size={20} />,        label: 'Analytics Dashboard' },
     { id: 'coupons',       icon: <Box size={20} />,              label: 'Coupons' },
     { id: 'expenses',      icon: <Receipt size={20} />,          label: 'Expenses' },
-    { id: 'attendance',    icon: <Users size={20} />,            label: 'Attendance' },
   ]
   const navItems = allNavItems.filter(item => role === 'admin' || (item.id !== 'pos_analytics' && item.id !== 'coupons' && item.id !== 'expenses'))
 
@@ -3286,11 +3283,7 @@ export default function Dashboard() {
           </div>
         )}
         
-        {tab === 'attendance' && (
-          <div className="flex flex-col h-full overflow-y-auto">
-            {role === 'admin' ? <Attendance /> : <StaffPunch embedded={true} />}
-          </div>
-        )}
+        
         
         {tab === 'users' && (
           <div className="space-y-6">

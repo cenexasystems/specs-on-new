@@ -57,12 +57,27 @@ function InventoryAnalytics() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-black text-near-black">Recent Items Sold</h3>
-      </div>
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-warm-beige/60">
-        <div className="w-full overflow-hidden">
-          <table className="w-full table-fixed text-left text-sm text-[#374151]">
+      <h3 className="text-xl font-black text-near-black">Recent Items Sold</h3>
+      <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
+        {/* Mobile card view */}
+        <div className="sm:hidden divide-y divide-[#F3F4F6]">
+          {itemsSold.map((item, i) => (
+            <div key={i} className="px-4 py-3 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-near-black text-sm truncate">{item.product_name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{new Date(item.created_at).toLocaleDateString('en-IN')}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="font-bold text-sm text-near-black">{formatCurrency(item.line_total)}</p>
+                <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+              </div>
+            </div>
+          ))}
+          {itemsSold.length === 0 && <p className="p-6 text-center text-gray-400 text-sm">No sales data yet.</p>}
+        </div>
+        {/* Desktop table view */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-left text-sm text-[#374151]">
             <thead className="bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] border-b border-[#F3F4F6]">
               <tr>
                 <th className="p-4 font-black">Item</th>
@@ -74,10 +89,10 @@ function InventoryAnalytics() {
             <tbody>
               {itemsSold.map((item, i) => (
                 <tr key={i} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                  <td className="p-4 font-bold text-near-black break-words">{item.product_name}</td>
+                  <td className="p-4 font-bold text-near-black">{item.product_name}</td>
                   <td className="p-4">{item.quantity}</td>
                   <td className="p-4 font-bold text-near-black">{formatCurrency(item.line_total)}</td>
-                  <td className="p-4 text-xs text-gray-500 break-words">{new Date(item.created_at).toLocaleString()}</td>
+                  <td className="p-4 text-xs text-gray-500">{new Date(item.created_at).toLocaleString('en-IN')}</td>
                 </tr>
               ))}
             </tbody>
@@ -87,6 +102,7 @@ function InventoryAnalytics() {
     </div>
   )
 }
+
 
 export default function Inventory() {
   const [activeTab, setActiveTab] = useState<'catalog' | 'products' | 'categories' | 'analytics' | 'addons'>('catalog')
@@ -300,35 +316,50 @@ export default function Inventory() {
 
           <div className="bg-white rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden">
             <div className="p-4 border-b border-warm-beige/30 flex items-center gap-4">
-              <Search className="text-gray-400" size={20} />
+              <Search className="text-gray-400 shrink-0" size={18} />
               <input type="text" placeholder="Search catalog..." value={search} onChange={e => setSearch(e.target.value)} className="w-full text-sm font-semibold bg-transparent outline-none" />
             </div>
-            <div className="w-full">
-              <div className="hidden sm:grid grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] font-black">
-                <span>Product</span>
-                <span>Category</span>
-                <span>Type / Tier</span>
-                <span>Price</span>
-                <span className="text-right">Actions</span>
-              </div>
-              {filteredProducts.map(p => (
-                <div key={p.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-3 sm:gap-4 items-center px-3 sm:px-4 py-3 border-t border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors text-xs sm:text-sm">
-                  <span className="font-bold text-near-black min-w-0 break-words">{p.name}</span>
-                  <span className="hidden sm:block min-w-0"><span className="inline-block max-w-full px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown break-words">{p.category}</span></span>
-                  <span className="hidden sm:block text-gray-500 font-semibold break-words">{p.lens_type || '-'}</span>
-                  <span className="font-bold text-near-black break-words">
-                    {p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}
-                  </span>
-                  <span className="text-right whitespace-nowrap">
-                    <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><Edit2 size={16} /></button>
+            {/* Desktop header */}
+            <div className="hidden sm:grid grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-[#FBFAF6] text-[11px] uppercase tracking-wider text-[#9CA3AF] font-black">
+              <span>Product</span>
+              <span>Category</span>
+              <span>Type / Tier</span>
+              <span>Price</span>
+              <span className="text-right">Actions</span>
+            </div>
+            {filteredProducts.map(p => (
+              <div key={p.id} className="border-t border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                {/* Mobile card row */}
+                <div className="flex items-center justify-between gap-2 px-4 py-3 sm:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-near-black text-sm truncate">{p.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {p.is_price_editable ? <span className="italic text-gray-400">Editable at billing</span> : <span className="font-semibold text-choc-brown">{formatCurrency(p.price)}</span>}
+                      {p.lens_type ? <span className="ml-2 text-gray-400">· {p.lens_type}</span> : null}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
+                    <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                  </div>
+                </div>
+                {/* Desktop row */}
+                <div className="hidden sm:grid grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-4 items-center px-4 py-3 text-sm">
+                  <span className="font-bold text-near-black truncate">{p.name}</span>
+                  <span><span className="inline-block px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-warm-beige/40 text-choc-brown">{p.category}</span></span>
+                  <span className="text-gray-500 font-semibold">{p.lens_type || '-'}</span>
+                  <span className="font-bold text-near-black">{p.is_price_editable ? <span className="text-gray-400 italic">Editable at billing</span> : formatCurrency(p.price)}</span>
+                  <span className="flex items-center gap-1">
+                    <button onClick={() => { setEditingProduct(p); setForm({name: p.name, category: p.category, price: String(p.price), is_price_editable: p.is_price_editable, lens_type: p.lens_type || '', is_active: p.is_active}); setActiveTab('products') }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
                     <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                   </span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
+
 
       {activeTab === 'products' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">

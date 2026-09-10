@@ -1555,16 +1555,62 @@ export default function Pos(props: PosProps = {}) {
                   </tr>
                 </thead>
                 <tbody>
-                  {(['distance', 'near'] as const).map(row => (
+                  {(['distance', 'near'] as const).map((row, rowIdx) => (
                     <tr key={row}>
                       <th className="border border-[#D8DDE2] bg-[#F8FAFA] px-3 py-3 text-left uppercase">{row}</th>
-                      {(['od', 'os'] as const).flatMap(eye => (['sph', 'cyl', 'axis', 'vn'] as const).map(field => (
-                        <td key={`${eye}-${field}`} className="border border-[#D8DDE2] p-1">
-                          <input aria-label={`${row} ${eye} ${field}`} value={eyePrescription[row][eye][field]} onChange={event => updateEyePrescription(row, eye, field, event.target.value)} className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]" />
-                        </td>
-                      )))}
-                      <td className="border border-[#D8DDE2] p-1"><input aria-label={`${row} PD`} value={eyePrescription[row].pd} onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], pd: event.target.value } }))} className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]" /></td>
-                      <td className="border border-[#D8DDE2] p-1"><input aria-label={`${row} lens type`} value={eyePrescription[row].lensType} onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], lensType: event.target.value } }))} className="h-9 w-full min-w-[100px] rounded border border-[#D8DDE2] px-2 font-bold outline-none focus:border-[#3B261B]" /></td>
+                      {(['od', 'os'] as const).flatMap((eye, eyeIdx) => (['sph', 'cyl', 'axis', 'vn'] as const).map((field, fieldIdx) => {
+                        const tabIdx = rowIdx * 10 + eyeIdx * 4 + fieldIdx + 1
+                        return (
+                          <td key={`${eye}-${field}`} className="border border-[#D8DDE2] p-1">
+                            <input
+                              aria-label={`${row} ${eye} ${field}`}
+                              value={eyePrescription[row][eye][field]}
+                              onChange={event => updateEyePrescription(row, eye, field, event.target.value)}
+                              tabIndex={tabIdx}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  const next = document.querySelector<HTMLInputElement>(`[tabindex="${tabIdx + 1}"]`)
+                                  next?.focus()
+                                }
+                              }}
+                              className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]"
+                            />
+                          </td>
+                        )
+                      }))}
+                      <td className="border border-[#D8DDE2] p-1">
+                        <input
+                          aria-label={`${row} PD`}
+                          value={eyePrescription[row].pd}
+                          onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], pd: event.target.value } }))}
+                          tabIndex={rowIdx * 10 + 9}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const next = document.querySelector<HTMLInputElement>(`[tabindex="${rowIdx * 10 + 10}"]`)
+                              next?.focus()
+                            }
+                          }}
+                          className="h-9 w-full min-w-[62px] rounded border border-[#D8DDE2] px-2 text-center font-bold outline-none focus:border-[#3B261B]"
+                        />
+                      </td>
+                      <td className="border border-[#D8DDE2] p-1">
+                        <input
+                          aria-label={`${row} lens type`}
+                          value={eyePrescription[row].lensType}
+                          onChange={event => setEyePrescription(current => ({ ...current, [row]: { ...current[row], lensType: event.target.value } }))}
+                          tabIndex={rowIdx * 10 + 10}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const next = document.querySelector<HTMLInputElement>(`[tabindex="${rowIdx * 10 + 11}"]`)
+                              next?.focus()
+                            }
+                          }}
+                          className="h-9 w-full min-w-[100px] rounded border border-[#D8DDE2] px-2 font-bold outline-none focus:border-[#3B261B]"
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -9,14 +9,14 @@ const esc = (value: string) => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;'
 // jsPDF renders INR (₹) via Intl; we clean the prefix for cleaner PDF output.
 const pdfMoney = (value: number): string => {
   const formatted = formatCurrency(value)
-  // Normalise INR format: strip any 'INR ' prefix from Intl, show '₹ '
-  return formatted.replace(/^INR\s*/, '₹ ')
+  // Normalise INR format: strip any currency symbol prefix, show 'Rs. '
+  return formatted.replace(/^[^\d]+/, 'Rs. ')
 }
 
 export function advanceReceiptPdf(order: AdvanceOrder) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   doc.setFillColor('#3B261B'); doc.rect(0, 0, 210, 5, 'F')
-  try { doc.addImage(LOGO_BASE64, 'PNG', 16, 10, 12, 12) } catch {}
+  try { doc.addImage(LOGO_BASE64, 'JPEG', 16, 10, 12, 12) } catch {}
   doc.setTextColor('#3B261B'); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text(BRAND_EN.toUpperCase(), 38, 20)
   doc.setTextColor('#6b7280'); doc.setFontSize(8); doc.text('ADVANCE RECEIPT - NOT A TAX INVOICE', 38, 26)
 
@@ -77,7 +77,7 @@ export function printAdvanceReceipt(order: AdvanceOrder) {
   .balance-row { font-size: 14px; font-weight: bold; }
 </style>
 </head><body>
-<div class="c" style="margin-bottom:5px;"><img src="${BRAND_LOGO}" alt="${esc(BRAND_EN)}" style="width:36px;height:36px;object-fit:contain;display:inline-block;border-radius:8px;border:1px solid #e5e7eb;padding:2px;" /></div>
+<div class="c" style="margin-bottom:5px;"><img src="${LOGO_BASE64}" alt="${esc(BRAND_EN)}" style="width:36px;height:36px;object-fit:contain;display:inline-block;border-radius:8px;border:1px solid #e5e7eb;padding:2px;" /></div>
 <div class="c big">${esc(BRAND_EN)}</div>
 <div class="c" style="font-size:10px;color:#555;">${esc(BRAND_ADDRESS)}</div>
 <div class="c" style="font-size:10px;color:#555;">${esc(BRAND_PHONE_DISPLAY)}</div>

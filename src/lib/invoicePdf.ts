@@ -34,7 +34,7 @@ const hasPrescriptionValues = (value: unknown): boolean => {
   return Object.values(value).some(hasPrescriptionValues)
 }
 
-const money = (value: number) => formatCurrency(Number(value || 0)).replace(/\s+/g, ' ')
+const money = (value: number) => formatCurrency(Number(value || 0)).replace(/^[^\d]+/, 'Rs. ').replace(/\s+/g, ' ')
 
 /** Creates a compact A4 invoice that can be attached as a file to WhatsApp. */
 export function createInvoicePdf(data: InvoicePdfData): Blob {
@@ -59,7 +59,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   y += 10
 
   try {
-    doc.addImage(LOGO_BASE64, 'PNG', left, y, 20, 20)
+    doc.addImage(LOGO_BASE64, 'JPEG', left, y, 20, 20)
   } catch {
     doc.setTextColor(primaryColor)
     doc.setFontSize(16)

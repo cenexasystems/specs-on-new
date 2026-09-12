@@ -160,7 +160,7 @@ export async function createAdvanceOrder(input: {
         p_customer_name: input.customerName, p_phone: input.phone, p_address: input.address, p_product_name: input.productName,
         p_category: input.category, p_description: input.description, p_total_amount: input.totalAmount,
         p_deposit_amount: input.depositAmount, p_expected_delivery_date: input.expectedDeliveryDate, p_remarks: input.remarks,
-        p_payment_method: (input.paymentMethod === 'GPay' || (typeof input.paymentMethod === 'string' && input.paymentMethod.toLowerCase() === 'gpay')) ? 'upi' : input.paymentMethod, p_created_by_name: input.createdByName, p_products: input.products || [],
+        p_payment_method: (input.paymentMethod === 'GPay' || input.paymentMethod === 'QR' || (typeof input.paymentMethod === 'string' && (input.paymentMethod.toLowerCase() === 'gpay' || input.paymentMethod.toLowerCase() === 'qr'))) ? 'upi' : input.paymentMethod, p_created_by_name: input.createdByName, p_products: input.products || [],
       })
       if (error) {
         console.error('[createAdvanceOrder] Supabase error:', error.message)
@@ -291,7 +291,7 @@ export async function completeAdvanceOrder(
 
   if (isSupabaseConfigured) {
     try {
-      const dbPaymentMethod = (paymentMethod === 'GPay' || paymentMethod.toLowerCase() === 'gpay') ? 'upi' : paymentMethod
+      const dbPaymentMethod = (paymentMethod === 'GPay' || paymentMethod === 'QR' || paymentMethod.toLowerCase() === 'gpay' || paymentMethod.toLowerCase() === 'qr') ? 'upi' : paymentMethod
       const { data, error } = await supabase.rpc('complete_advance_order_v2', { 
         p_order_id: orderId, 
         p_payment_method: dbPaymentMethod,

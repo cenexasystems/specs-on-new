@@ -1,6 +1,6 @@
 export const PAYMENT_METHODS = [
   'Cash',
-  'GPay',
+  'QR',
   'Card',
 ] as const;
 

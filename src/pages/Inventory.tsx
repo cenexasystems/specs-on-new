@@ -119,6 +119,8 @@ export default function Inventory() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [categoryForm, setCategoryForm] = useState({ name_en: '', is_manual_entry: false })
   const [categoryError, setCategoryError] = useState('')
+  const [editingAddon, setEditingAddon] = useState<LensAddon | null>(null)
+  const [addonForm, setAddonForm] = useState({ name: '', price: '' })
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -175,13 +177,15 @@ export default function Inventory() {
     else { ; fetchData() }
   }
 
-  const handleAddonSave = async (e: React.FormEvent, addonForm: any, isEdit: boolean, id?: string|number) => {
+  const handleAddonSave = async (e: React.FormEvent, addonData: { name: string; price: string | number }, isEdit: boolean, id?: string|number) => {
     e.preventDefault()
-    if (isEdit) {
-      await supabase.from('lens_addons').update({name: addonForm.name, price: parseFloat(addonForm.price)}).eq('id', id)
+    if (isEdit && id) {
+      await supabase.from('lens_addons').update({name: addonData.name, price: parseFloat(String(addonData.price))}).eq('id', id)
     } else {
-      await supabase.from('lens_addons').insert([{name: addonForm.name, price: parseFloat(addonForm.price)}])
+      await supabase.from('lens_addons').insert([{name: addonData.name, price: parseFloat(String(addonData.price))}])
     }
+    setEditingAddon(null)
+    setAddonForm({ name: '', price: '' })
     fetchData()
   }
 
@@ -442,22 +446,34 @@ export default function Inventory() {
       {activeTab === 'addons' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-warm-beige/60 h-fit">
-            <h3 className="text-lg sm:text-xl font-black text-near-black mb-2">New Lens Add-on</h3>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h3 className="text-lg sm:text-xl font-black text-near-black">{editingAddon ? 'Edit Lens Add-on' : 'New Lens Add-on'}</h3>
+              {editingAddon && (
+                <button
+                  type="button"
+                  onClick={() => { setEditingAddon(null); setAddonForm({ name: '', price: '' }) }}
+                  className="px-4 py-2 border border-[#D8D0C5] text-near-black rounded-xl font-black text-xs sm:text-sm"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-5 sm:mb-6 font-medium">Add-ons appear as checkboxes when billing Non-Branded lenses.</p>
-            <form onSubmit={e => {
-              e.preventDefault()
-              const fd = new FormData(e.target as HTMLFormElement)
-              handleAddonSave(e, {name: fd.get('name'), price: fd.get('price')}, false).then(() => (e.target as HTMLFormElement).reset())
-            }} className="space-y-4">
+            <form onSubmit={e => handleAddonSave(e, addonForm, Boolean(editingAddon), editingAddon?.id)} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Add-on Name</label>
-                <input name="name" required placeholder="e.g. Anti-Reflective Coating" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" />
+                <input name="name" required placeholder="e.g. Anti-Reflective Coating" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={addonForm.name} onChange={e => setAddonForm(f => ({ ...f, name: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price (?)</label>
-                <input name="price" type="number" required placeholder="0.00" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" />
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price (₹)</label>
+                <input name="price" type="number" step="0.01" required placeholder="0.00" className="w-full px-4 py-3 bg-[#FBFAF6] border border-[#D8D0C5] rounded-xl text-sm font-bold" value={addonForm.price} onChange={e => setAddonForm(f => ({ ...f, price: e.target.value }))} />
               </div>
-              <button className="w-full bg-choc-brown text-white py-3 rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2 mt-4"><Plus size={18} /> Save Add-on</button>
+              <div className="flex gap-3">
+                <button type="submit" className="flex-1 bg-choc-brown text-white py-3 rounded-xl font-black hover:bg-near-black flex items-center justify-center gap-2 mt-4"><Plus size={18} /> {editingAddon ? 'Update Add-on' : 'Save Add-on'}</button>
+                {editingAddon && (
+                  <button type="button" onClick={() => { setEditingAddon(null); setAddonForm({ name: '', price: '' }) }} className="px-6 border border-[#D8D0C5] text-near-black rounded-xl font-black mt-4">Cancel</button>
+                )}
+              </div>
             </form>
           </div>
            <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-warm-beige/60 overflow-hidden flex flex-col h-fit max-h-[800px]">
@@ -480,7 +496,8 @@ export default function Inventory() {
                       <td className="p-3 sm:p-4 font-bold text-near-black">{a.name}</td>
                       <td className="p-3 sm:p-4 font-bold">{formatCurrency(a.price)}</td>
                       <td className="p-3 sm:p-4 text-right">
-                        <button onClick={() => supabase.from('lens_addons').delete().eq('id', a.id).then(fetchData)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                        <button onClick={() => { setEditingAddon(a); setAddonForm({ name: a.name, price: String(a.price) }) }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Edit add-on"><Edit2 size={16} /></button>
+                        <button onClick={() => supabase.from('lens_addons').delete().eq('id', a.id).then(fetchData)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Delete add-on"><Trash2 size={16} /></button>
                       </td>
                     </tr>
                   ))}

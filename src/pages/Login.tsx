@@ -2192,7 +2192,7 @@ export default function Dashboard() {
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={analytics.monthlyTrend}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
-                          <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 9, fontWeight: 700 }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={60} />
+                          <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.02em' }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={60} tickMargin={4} />
                           <YAxis hide />
                           <Tooltip cursor={{ fill: '#F9FAFB' }} formatter={(value) => formatCurrency(toNumber(value as number | string, 0))} />
                           <Bar dataKey="revenue" fill="#3B261B" radius={[4, 4, 0, 0]} barSize={12} />

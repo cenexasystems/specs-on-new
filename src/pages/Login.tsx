@@ -43,7 +43,7 @@ import { normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { Invoice } from '../components/Invoice'
 import { printThermalReceipt } from '../lib/thermalPrint'
 import { buildProfessionalWhatsAppMessage } from '../lib/whatsappMessage'
-import { invoicePdfFile } from '../lib/invoicePdf'
+import { invoicePdfFile, invoicePdfFileFromElement } from '../lib/invoicePdf'
 // toWhatsAppUrl removed - using direct link building in handlers
 import { createVariant, updateVariant, deleteVariant, setDefaultVariant, type ProductVariant } from '../services/variantService'
 import { useVariantStore } from '../store/store'
@@ -854,6 +854,27 @@ export default function Dashboard() {
       totalGst: order.total_gst || 0,
       total: order.total
     })
+  }
+
+  const invoicePreviewRef = useRef<HTMLDivElement>(null)
+
+  const handleDownloadPreview = async () => {
+    if (!invoicePreviewOrder) return
+    if (invoicePreviewOrder.invoice_pdf_url) {
+      const link = document.createElement('a')
+      link.href = invoicePreviewOrder.invoice_pdf_url
+      link.download = `Invoice-${invoicePreviewOrder.invoice_no || invoicePreviewOrder.id}.pdf`
+      link.click()
+      return
+    }
+    if (!invoicePreviewRef.current) return
+    const file = await invoicePdfFileFromElement(invoicePreviewRef.current, invoicePreviewOrder.invoice_no || invoicePreviewOrder.id)
+    const url = URL.createObjectURL(file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   const openOrderInvoice = async (order: DashboardOrder, mode: 'view' | 'download' | 'print') => {
@@ -3877,7 +3898,7 @@ export default function Dashboard() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void openOrderInvoice(invoicePreviewOrder, 'download')}
+                    onClick={() => void handleDownloadPreview()}
                     className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-maroon-dark px-3 text-xs font-black text-white hover:bg-maroon"
                   >
                     <Download size={15} /> Download
@@ -3893,7 +3914,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="overflow-y-auto p-2 sm:p-5">
-                <div className="mx-auto max-w-3xl overflow-hidden rounded-xl bg-white shadow-sm">
+                <div ref={invoicePreviewRef} className="mx-auto max-w-3xl overflow-hidden rounded-xl bg-white shadow-sm">
                   <Invoice
                     invoiceNo={formatInvoiceNo(invoicePreviewOrder.invoice_no || invoicePreviewOrder.id)}
                     date={invoicePreviewOrder.created_at}

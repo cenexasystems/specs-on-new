@@ -598,7 +598,7 @@ export default function BillingAnalytics() {
       <div className="mx-auto max-w-[1600px] px-4 py-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="admin-logo-lockup min-w-0 flex-1">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-emerald-900/30 p-1 shadow-sm overflow-hidden shrink-0">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-[#D8D0C5] p-1 shadow-sm overflow-hidden shrink-0">
                 <img src={BRAND_LOGO} alt={`${BRAND_EN} logo`} className="h-full w-full object-contain" />
               </div>
             <div className="min-w-0">

@@ -123,10 +123,7 @@ ${prescriptionText}${remarksText}
 *View & Download Digital Invoice / PDF:*
 ${invoiceUrl}
 
-Thank you, and we hope to see you again soon!
-
-Follow us on Instagram:
-https://www.instagram.com/specson`
+Thank you, and we hope to see you again soon!`
 }
 
 export const buildAdvanceDepositWhatsAppMessage = (input: AdvanceDepositWhatsAppInput) => {

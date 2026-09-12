@@ -25,6 +25,14 @@ export interface ThermalReceiptData {
   storeAddress?: string
 }
 
+function formatPhoneDisplay(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `91 ${digits.slice(2)}`
+  }
+  return phone
+}
+
 export function printThermalReceipt(data: ThermalReceiptData) {
   // Create an iframe to hold the print document
   const iframe = document.createElement('iframe')
@@ -96,7 +104,7 @@ export function printThermalReceipt(data: ThermalReceiptData) {
           <div>Inv: #${formatInvoiceNo(data.invoiceNo)}</div>
           <div>Date: ${dateStr}</div>
           ${data.customerName ? `<div>Name: ${data.customerName}</div>` : ''}
-          ${data.phone ? `<div>Tel: ${data.phone}</div>` : ''}
+          ${data.phone ? `<div>Tel: ${formatPhoneDisplay(data.phone)}</div>` : ''}
         </div>
 
         <table class="border-bottom">

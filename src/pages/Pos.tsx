@@ -960,7 +960,7 @@ export default function Pos(props: PosProps = {}) {
                   onChange={e => setBillingDate(e.target.value)}
                   className="w-full h-12 px-4 bg-white border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[16px] md:text-[13px] font-bold text-[#111111]"
                 />
-                <p className="mt-1 text-[10px] text-gray-400 font-medium">Leave blank to use today's date &amp; time</p>
+                <p className="mt-1 text-[10px] text-gray-400 font-medium">Leave blank to use today's date</p>
               </div>
               <div>
                 <label className="block text-[13px] md:text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Eye Prescription (Optional)</label>

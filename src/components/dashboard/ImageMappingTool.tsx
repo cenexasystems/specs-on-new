@@ -387,7 +387,7 @@ export default function ImageMappingTool() {
       {/* Toast notice */}
       {notice && (
         <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold ${
-          notice.type === 'ok' ? 'bg-warm-beige\/30 text-choc-brown border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+          notice.type === 'ok' ? 'bg-warm-beige\/30 text-choc-brown border border-[#D8BA8A]' : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {notice.type === 'ok' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
           {notice.msg}

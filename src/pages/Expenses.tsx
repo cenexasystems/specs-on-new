@@ -295,7 +295,8 @@ export default function Expenses() {
             </form>
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0C5]/60 overflow-hidden">
-            <table className="w-full text-left">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left">
               <thead className="bg-[#FAFAFA] border-b border-[#D8D0C5]/60">
                 <tr>
                   <th className="px-4 py-3 text-[11px] font-black uppercase text-[#374151]">Category Name</th>
@@ -323,6 +324,7 @@ export default function Expenses() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}

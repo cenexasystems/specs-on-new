@@ -2484,7 +2484,7 @@ export default function Dashboard() {
                           <p className="text-[10px] uppercase font-black text-white/80 tracking-wider">{card.label}</p>
                           <div className="w-9 h-9 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center text-white shadow-sm">{card.icon}</div>
                         </div>
-                        <p className="text-[22px] font-extrabold text-white drop-shadow-sm truncate">{card.value}</p>
+                        <p className="text-[18px] sm:text-[22px] font-extrabold text-white drop-shadow-sm leading-tight break-words">{card.value}</p>
                       </div>
                     </div>
                   ))}
@@ -2651,7 +2651,7 @@ export default function Dashboard() {
                           <p className="text-[10px] uppercase font-black text-white/80 tracking-wider">{card.label}</p>
                           <div className="w-9 h-9 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center text-white shadow-sm">{card.icon}</div>
                         </div>
-                        <p className="text-[22px] font-extrabold text-white drop-shadow-sm truncate">{card.value}</p>
+                        <p className="text-[18px] sm:text-[22px] font-extrabold text-white drop-shadow-sm leading-tight break-words">{card.value}</p>
                       </div>
                     </div>
                   ))}

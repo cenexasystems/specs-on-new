@@ -1,6 +1,7 @@
 import { BRAND_ADDRESS, BRAND_EN, BRAND_LOGO, BRAND_WHATSAPP } from './brand'
 import { LOGO_BASE64 } from './logoBase64'
 import { formatCurrency, formatInvoiceNo } from './retail'
+import { formatPhoneDisplay } from './phone'
 
 export interface ThermalReceiptData {
   invoiceNo: string
@@ -23,14 +24,6 @@ export interface ThermalReceiptData {
   storeName?: string
   storePhone?: string
   storeAddress?: string
-}
-
-function formatPhoneDisplay(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length === 12 && digits.startsWith('91')) {
-    return `91 ${digits.slice(2)}`
-  }
-  return phone
 }
 
 export function printThermalReceipt(data: ThermalReceiptData) {

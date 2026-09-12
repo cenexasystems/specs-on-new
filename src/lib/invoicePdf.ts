@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas'
 import { BRAND_ADDRESS, BRAND_EN, BRAND_PHONE_DISPLAY } from './brand'
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from './retail'
 import { LOGO_BASE64 } from './logoBase64'
+import { formatPhoneDisplay } from './phone'
 
 export type InvoicePdfData = {
   invoiceNo: string
@@ -43,7 +44,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   const pageWidth = 210
   const left = 16
   const right = 194
-  const primaryColor = '#3B261B' // Specson Orange
+  const primaryColor = '#3B261B' // Specson Brown
   const ink = '#18202a'
   const muted = '#68717c'
   let y = 16
@@ -79,7 +80,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   y += 28
 
   const customerName = String(data.customerName || 'Walk-in Customer').trim()
-  const customerPhone = String(data.phone || '—').trim()
+  const customerPhone = data.phone ? formatPhoneDisplay(String(data.phone).trim()) : '—'
   const customerAddress = String(data.address || '').trim()
   const customerNameLines = doc.splitTextToSize(customerName, 165) as string[]
   const customerAddressLines = customerAddress
@@ -87,7 +88,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
     : []
   const customerBoxHeight = 19 + customerNameLines.length * 4 + customerAddressLines.length * 4
 
-  doc.setFillColor('#FFF3E8')
+  doc.setFillColor('#F1EEE9')
   doc.roundedRect(left, y, right - left, customerBoxHeight, 2, 2, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
@@ -229,21 +230,20 @@ export async function invoicePdfFileFromElement(
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
   const pageWidth = 210
   const pageHeight = 297
-  const imageHeight = (canvas.height * pageWidth) / canvas.width
+  const margin = 6
+  const maxWidth = pageWidth - margin * 2
+  const maxHeight = pageHeight - margin * 2
+  const naturalHeight = (canvas.height * maxWidth) / canvas.width
   const image = canvas.toDataURL('image/png')
 
-  if (imageHeight <= pageHeight + 10) {
-    doc.addImage(image, 'PNG', 0, 0, pageWidth, Math.min(pageHeight, imageHeight), undefined, 'FAST')
-  } else {
-    let offset = 0
-    let page = 0
-    while (offset < imageHeight) {
-      if (page > 0) doc.addPage()
-      doc.addImage(image, 'PNG', 0, -offset, pageWidth, imageHeight, undefined, 'FAST')
-      offset += pageHeight
-      page += 1
-    }
-  }
+  // Always fit the invoice on a single page, scaling down proportionally if needed.
+  const scale = Math.min(1, maxHeight / naturalHeight)
+  const renderWidth = maxWidth * scale
+  const renderHeight = naturalHeight * scale
+  const x = (pageWidth - renderWidth) / 2
+  const y = margin
+
+  doc.addImage(image, 'PNG', x, y, renderWidth, renderHeight, undefined, 'FAST')
 
   return new File([doc.output('blob')], `Invoice-${formattedNo}.pdf`, { type: 'application/pdf' })
 }

@@ -47,6 +47,15 @@ export function normalizePhoneForWhatsApp(input: string): string {
   return digits
 }
 
+export function formatPhoneDisplay(input: string): string {
+  if (!input) return input
+  const digits = input.replace(/\D/g, '')
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2)}`
+  }
+  return input
+}
+
 export function toWhatsAppUrl(phone: string, text?: string): string {
   const normalized = normalizePhoneForWhatsApp(phone) || normalizePhone(phone)
   const queryParams: string[] = []

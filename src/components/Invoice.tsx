@@ -1,6 +1,7 @@
 import React from 'react'
 import { BRAND_ADDRESS, BRAND_EN, BRAND_LOGO, BRAND_PHONE_DISPLAY } from '../lib/brand'
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
+import { formatPhoneDisplay } from '../lib/phone'
 
 export interface InvoiceItem {
   id?: number | string
@@ -141,12 +142,12 @@ export const Invoice: React.FC<InvoiceProps> = ({
             </>
           )}
         </div>
-        <div style={{ minWidth: 0, padding: '12px 14px', borderRadius: 10, background: '#FFF3E8', overflowWrap: 'anywhere' }}>
+        <div style={{ minWidth: 0, padding: '12px 14px', borderRadius: 10, background: '#F1EEE9', overflowWrap: 'anywhere' }}>
           <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Customer</div>
           <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 6 }}>Customer Name</div>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a2e', lineHeight: 1.35, wordBreak: 'break-word' }}>{customerName || 'Walk-in Customer'}</div>
           <div style={{ fontSize: 9, fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 6 }}>Mobile Number</div>
-          <div style={{ fontSize: 12, color: '#555', lineHeight: 1.4, wordBreak: 'break-word' }}>{phone || '—'}</div>
+          <div style={{ fontSize: 12, color: '#555', lineHeight: 1.4, wordBreak: 'break-word' }}>{phone ? formatPhoneDisplay(phone) : '—'}</div>
           {address && <div style={{ fontSize: 11, color: '#777', marginTop: 4, lineHeight: 1.4, wordBreak: 'break-word' }}>{address}</div>}
           {paymentMode && <div style={{ fontSize: 10, color: '#777', marginTop: 4 }}>Payment: {paymentMode}</div>}
         </div>
@@ -159,7 +160,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
       <div className="w-full overflow-x-auto">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 320 }}>
           <thead>
-            <tr style={{ background: '#f3f8f3', borderRadius: 8 }}>
+            <tr style={{ background: '#F5F1E9', borderRadius: 8 }}>
               <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: '#3B261B', textTransform: 'uppercase', letterSpacing: 0.8, width: 28 }}>#</th>
               <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: '#3B261B', textTransform: 'uppercase', letterSpacing: 0.8 }}>Product</th>
               <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: 10, fontWeight: 800, color: '#3B261B', textTransform: 'uppercase', letterSpacing: 0.8, width: 45 }}>Qty</th>

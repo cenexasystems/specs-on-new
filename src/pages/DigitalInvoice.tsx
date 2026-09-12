@@ -241,7 +241,7 @@ export default function DigitalInvoice() {
         <div className="flex items-center gap-2">
           <button
             onClick={downloadPdf}
-            className="flex items-center gap-2 bg-[#3B261B] text-white px-5 py-2 rounded-full font-bold text-sm shadow-md hover:bg-[#C73660] transition-colors"
+            className="flex items-center gap-2 bg-[#3B261B] text-white px-5 py-2 rounded-full font-bold text-sm shadow-md hover:bg-[#1A1410] transition-colors"
           >
             <Printer size={16} /> PDF
           </button>

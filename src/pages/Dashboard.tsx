@@ -130,8 +130,9 @@ const emptyForm = {
 const exportCSV = (orders: DashboardOrder[]) => {
   const header = ['Order Ref', 'Customer', 'Phone', 'Date', 'Total (₹)', 'Order Type', 'Status']
   const rows = orders.map(o => [
-    o.order_type === 'online_request' ? o.id : o.invoice_no, o.customer_name, o.phone,
-    new Date(o.created_at).toLocaleDateString('en-MY'),
+    o.order_type === 'online_request' ? o.id : o.invoice_no, o.customer_name,
+    o.phone ? `="${o.phone}"` : '',
+    new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
     getOrderTotal(o).toFixed(2), o.order_type, o.status,
   ])
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')

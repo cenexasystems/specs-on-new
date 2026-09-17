@@ -148,7 +148,7 @@ export function printThermalReceipt(data: ThermalReceiptData) {
             ` : ''}
             ${(data.totalGst || 0) > 0 ? `
               <tr>
-                <td class="text-left">SST</td>
+                <td class="text-left">GST</td>
                 <td class="text-right">+${formatCurrency(data.totalGst || 0)}</td>
               </tr>
             ` : ''}

@@ -119,14 +119,16 @@ export const Invoice: React.FC<InvoiceProps> = ({
         <div style={{ fontSize: 11, color: '#4b5563', marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <span>📞 {BRAND_PHONE_DISPLAY}</span>
         </div>
-        <div
-          style={{
-            display: 'inline-block', marginTop: 10, padding: '3px 12px', borderRadius: 99,
-            background: statusColor + '18', color: statusColor,
-            fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase',
-          }}
-        >
-          {status}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+          <div
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '3px 12px', borderRadius: 99,
+              background: statusColor + '18', color: statusColor, whiteSpace: 'nowrap', lineHeight: 1.4,
+              fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase',
+            }}
+          >
+            {status}
+          </div>
         </div>
       </div>
 

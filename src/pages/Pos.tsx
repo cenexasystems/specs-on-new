@@ -1324,7 +1324,7 @@ export default function Pos(props: PosProps = {}) {
 
               {/* GST Toggle */}
               <div className="flex items-center justify-between py-1 border-b border-[#FDDBB4]/40">
-                <span className="text-[11px] font-black text-[#374151]">Enable SST on Bill</span>
+                <span className="text-[11px] font-black text-[#374151]">Enable GST on Bill</span>
                 <button
                   type="button"
                   onClick={() => setBillGstEnabled(!billGstEnabled)}

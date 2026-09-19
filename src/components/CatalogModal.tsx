@@ -16,7 +16,7 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [editForm, setEditForm] = useState({ name: "", category: "", price: "" })
+  const [editForm, setEditForm] = useState({ name: "", category: "", price: "", lensType: "" })
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
@@ -78,7 +78,7 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
 
   const startEdit = (p: Product) => {
     setEditingProduct(p)
-    setEditForm({ name: p.name, category: p.category, price: String(p.price) })
+    setEditForm({ name: p.name, category: p.category, price: String(p.price), lensType: p.lensType || "" })
     setEditError("")
   }
 
@@ -101,6 +101,7 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
       category: categoryName,
       category_id: selectedCategory.id,
       price: Number(editForm.price),
+      lens_type: editForm.lensType || null,
     }).eq("id", editingProduct.id)
     if (error) { setEditError(error.message); setEditLoading(false); return }
     await fetchProducts(true)
@@ -222,6 +223,19 @@ export default function CatalogModal({ isOpen, onClose, onAdd }: CatalogModalPro
                         )}
                       </select>
                     </div>
+                    {editForm.category.toLowerCase().includes('lenses') && !editForm.category.toLowerCase().includes('contact') && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Lens Type</label>
+                        <select value={editForm.lensType}
+                          onChange={e => setEditForm({...editForm, lensType: e.target.value})}
+                          className="w-full h-12 px-4 py-3 bg-[#F9FAFB] border border-[#FDDBB4]/60 rounded-xl focus:outline-none focus:border-[#3B261B] text-[13px] font-bold touch-manipulation">
+                          <option value="">None</option>
+                          <option value="Single Vision">Single Vision</option>
+                          <option value="Progressive">Progressive</option>
+                          <option value="Bifocal">Bifocal</option>
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-[10px] font-black text-[#374151] tracking-wider uppercase mb-1.5">Price</label>
                       <input type="number" value={editForm.price}

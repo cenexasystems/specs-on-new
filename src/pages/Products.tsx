@@ -299,7 +299,7 @@ export default function Products() {
                 <CheckCircle2 size={32} className="text-green-600" />
              </div>
              <div>
-                <h4 className="font-black text-lg text-green-900 leading-tight">Specson Quality</h4>
+                <h4 className="font-black text-lg text-green-900 leading-tight">Specs On Quality</h4>
                 <p className="text-sm text-green-700 mt-1">Every herb in our collection is sourced directly from trusted traditional practitioners and verified for purity.</p>
              </div>
           </div>

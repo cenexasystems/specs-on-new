@@ -44,7 +44,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   const pageWidth = 210
   const left = 16
   const right = 194
-  const primaryColor = '#3B261B' // Specson Brown
+  const primaryColor = '#3B261B' // Specs On Brown
   const ink = '#18202a'
   const muted = '#68717c'
   let y = 16

@@ -1,6 +1,6 @@
-export const BRAND_EN = "Specson"
-export const BRAND_TA = "Specson"
-export const BRAND_SUBTITLE = 'Specson'
+export const BRAND_EN = "Specs On"
+export const BRAND_TA = "Specs On"
+export const BRAND_SUBTITLE = 'Specs On'
 export const BRAND_LOGO = '/specson-logo.jpg'
 
 export const BRAND_PRIMARY_PHONE_DISPLAY = '+91 8825405290'
@@ -14,7 +14,7 @@ export const BRAND_PHONE_E164 = BRAND_PRIMARY_PHONE_E164
 export const BRAND_WHATSAPP = BRAND_THIRD_PHONE_DISPLAY
 export const WHATSAPP_NUM = BRAND_THIRD_PHONE_E164
 export const BRAND_WHATSAPP_LINK = `https://wa.me/${BRAND_THIRD_PHONE_E164}`
-export const BRAND_EMAIL = 'Specson3@gmail.com'
+export const BRAND_EMAIL = 'specson3@gmail.com'
 export const BRAND_OWNER = 'Matheshwaran.S'
 export const BRAND_ADDRESS = 'RCC House, Door No. M-253, Phase-10, Rayakottai Road, Hudco, Hosur-635109, Krishnagiri District, Tamil Nadu'
 export const BRAND_LOCATION_LINK = '#'

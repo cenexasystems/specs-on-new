@@ -108,12 +108,12 @@ export const buildProfessionalWhatsAppMessage = (input: BuildWhatsAppMessageInpu
     : ''
   const remarksText = input.remarks?.trim() ? `\n*Remarks:* ${input.remarks.trim()}` : ''
 
-  return `*Specson*
+  return `*Specs On*
 *Official Purchase Invoice & Receipt*
 
 Dear ${customerName},
 
-Thank you for shopping with Specson! We truly appreciate your order.
+Thank you for shopping with Specs On! We truly appreciate your order.
 
 *INVOICE DETAILS*
 *Invoice No:* #${formattedNo}
@@ -142,11 +142,11 @@ export const buildAdvanceDepositWhatsAppMessage = (input: AdvanceDepositWhatsApp
       })()
     : '-'
 
-  return `🧵 Thank You for Your Advance Order with Specson! 🧵
+  return `🧵 Thank You for Your Advance Order with Specs On! 🧵
 
 Dear ${customerName},
 
-✨ Thank you for choosing Specson. We have successfully received your initial advance payment!
+✨ Thank you for choosing Specs On. We have successfully received your initial advance payment!
 
 🧾 Advance Deposit Details 👇
 📦 Deposit ID: ${input.depositId}

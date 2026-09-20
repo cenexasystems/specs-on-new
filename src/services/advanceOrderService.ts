@@ -362,3 +362,32 @@ export async function completeAdvanceOrder(
 
   return result!
 }
+
+export async function deleteAdvanceOrder(orderId: string, completedOrderId: string | null) {
+  if (isSupabaseConfigured) {
+    try {
+      if (completedOrderId) {
+        // If the order was completed, delete the corresponding revenue invoice from the orders table
+        const { error: orderError } = await supabase.from('orders').delete().eq('id', completedOrderId)
+        if (orderError) console.error('[deleteAdvanceOrder] Error deleting from orders:', orderError.message)
+      }
+      
+      const { error: advanceError } = await supabase.from('advance_orders').delete().eq('id', orderId)
+      if (advanceError) throw new Error(advanceError.message)
+    } catch (err: any) {
+      console.error('[deleteAdvanceOrder] Exception:', err)
+      throw err
+    }
+  }
+
+  // Local storage cleanup
+  const localOrders = loadLocalOrders().filter(o => o.id !== orderId)
+  saveLocalOrders(localOrders)
+  
+  const localTimeline = loadLocalTimeline().filter(t => t.advance_order_id !== orderId)
+  saveLocalTimeline(localTimeline)
+  
+  const localPayments = loadLocalPayments().filter(p => p.advance_order_id !== orderId)
+  saveLocalPayments(localPayments)
+}
+
